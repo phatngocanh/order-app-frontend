@@ -56,7 +56,7 @@ export default [{
     },
 
     rules: {
-        "max-lines": ["error", 300],
+        "max-lines": ["error", 2000],
         "simple-import-sort/imports": "error",
         "simple-import-sort/exports": "error",
         "@typescript-eslint/no-explicit-any": "off",

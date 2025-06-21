@@ -2,6 +2,10 @@
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## 🌏 Language & Localization
+
+**Important Note**: All user-facing content in this application is displayed in Vietnamese to serve Vietnamese customers. While this README and code comments are in English, all UI text, error messages, form labels, and user interactions are in Vietnamese. See `CODING_CONVENTIONS.md` for detailed guidelines on Vietnamese content requirements.
+
 ## 🎨 Design & Theme
 
 -   **UI Framework**: Material UI (MUI)
@@ -16,10 +20,11 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ### 📁 Component Structure
 
+-   **Route Groups**: Using Next.js route groups `(main)` for authenticated pages
+-   **Shared Layout**: Common header and navigation in `(main)/layout.tsx`
 -   **Page-Level Components**: Each page has its own dedicated components
--   **No Shared Components**: Avoid creating common/shared components to maintain page isolation
 -   **Self-Contained Logic**: All logic for a page stays within that page's components
--   **Material UI First**: Use Material UI components directly in pages, no need for separate component files
+-   **Material UI First**: Use Material UI components directly in pages
 
 ### 🔧 Technical Stack
 
@@ -30,34 +35,60 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 -   **Authentication**: Centralized auth handling
 -   **Styling**: Tailwind CSS + MUI theme
 
-### 📂 Project Structure
+### 📂 Current Project Structure
 
 ```
 src/
 ├── app/                    # Next.js app router pages
-│   ├── page.tsx           # Home page (redirects to login/dashboard)
+│   ├── (main)/            # Route group for authenticated pages
+│   │   ├── layout.tsx     # Shared layout with header & navigation
+│   │   ├── dashboard/     # Dashboard page
+│   │   │   └── page.tsx   # Dashboard page with all logic
+│   │   └── products/      # Products management page
+│   │       └── page.tsx   # Products page with all logic
 │   ├── login/             # Login page
 │   │   └── page.tsx       # Login page with all logic
-│   ├── dashboard/         # Dashboard page
-│   │   └── page.tsx       # Dashboard page with all logic
+│   ├── page.tsx           # Home page (redirects to login/dashboard)
 │   ├── layout.tsx         # Root layout
-│   └── providers.tsx      # Client providers (MUI theme)
+│   ├── providers.tsx      # Client providers (MUI theme)
+│   ├── globals.css        # Global styles
+│   └── favicon.ico        # App icon
+├── components/            # Reusable components (if needed)
+│   ├── layouts/          # Layout components
+│   └── HelloWorld.tsx    # Example component
 ├── lib/                   # Utilities and configurations
 │   ├── axios.ts          # Centralized axios client
 │   ├── auth.ts           # Authentication utilities
+│   ├── products.ts       # Products API utilities
 │   └── theme.ts          # MUI theme configuration
 └── types/                 # TypeScript type definitions
+    └── index.ts          # All type definitions
 ```
 
 ### 🎯 Development Guidelines
 
-1. **Page Isolation**: Each page should be self-contained with all its logic
-2. **API Calls**: Use the centralized axios client for all API requests
-3. **Authentication**: Handle auth through the centralized auth utilities
-4. **Styling**: Use MUI components with blue/white theme, Tailwind for custom styling
-5. **TypeScript**: Use strict typing for all components and functions
-6. **File Naming**: Use kebab-case for file names, PascalCase for components
-7. **No Component Files**: Put everything directly in page files using Material UI
+1. **Route Groups**: Use `(main)` route group for authenticated pages with shared layout
+2. **Shared Layout**: Common header and navigation in `(main)/layout.tsx`
+3. **Page Isolation**: Each page should be self-contained with all its logic
+4. **API Calls**: Use the centralized axios client for all API requests
+5. **Authentication**: Handle auth through the centralized auth utilities
+6. **Styling**: Use MUI components with blue/white theme, Tailwind for custom styling
+7. **TypeScript**: Use strict typing for all components and functions
+8. **File Naming**: Use kebab-case for file names, PascalCase for components
+9. **Vietnamese Content**: All user-facing content must be in Vietnamese
+
+### 📝 Structure Maintenance
+
+**Important**: This README should be updated whenever the project structure changes. Please check:
+
+- [ ] New pages or route groups added
+- [ ] New directories created in `src/`
+- [ ] New utility files added to `lib/`
+- [ ] New type definitions added
+- [ ] Component structure changes
+- [ ] API endpoints added or modified
+
+Update the project structure section above to reflect any changes.
 
 ## 🚀 Getting Started
 
@@ -104,12 +135,14 @@ Authentication is handled centrally through utilities in `src/lib/auth.ts`. Curr
 -   Login functionality
 -   Token storage and retrieval
 -   Logout functionality
+-   Route protection for `(main)` group
 
 ## 🌐 API Integration
 
 All API calls use the centralized axios client located in `src/lib/axios.ts`. Currently supports:
 
 -   Login endpoint: `POST /api/v1/users/login`
+-   Products management: `src/lib/products.ts`
 
 The backend URL is configured via the `NEXT_PUBLIC_API_URL` environment variable.
 

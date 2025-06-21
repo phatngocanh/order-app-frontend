@@ -48,7 +48,7 @@ export default function ProductsPage() {
             const data = await productApi.getAll();
             setProducts(data);
         } catch (err) {
-            setError("Failed to load products. Please try again.");
+            setError("Không thể tải danh sách sản phẩm. Vui lòng thử lại.");
             console.error("Error loading products:", err);
         } finally {
             setLoading(false);
@@ -81,7 +81,7 @@ export default function ProductsPage() {
             setFormData({ name: "", spec: 0, type: "", original_price: 0 });
             await loadProducts();
         } catch (err) {
-            setError("Failed to save product. Please try again.");
+            setError("Không thể lưu sản phẩm. Vui lòng thử lại.");
             console.error("Error saving product:", err);
         }
     };
@@ -117,7 +117,7 @@ export default function ProductsPage() {
     if (loading) {
         return (
             <Box sx={{ p: 3 }}>
-                <Typography>Loading products...</Typography>
+                <Typography>Đang tải sản phẩm...</Typography>
             </Box>
         );
     }
@@ -126,14 +126,14 @@ export default function ProductsPage() {
         <Box sx={{ p: 3 }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                 <Typography variant="h4" component="h1">
-                    Products Management
+                    Quản lý Sản phẩm
                 </Typography>
                 <Button
                     variant="contained"
                     startIcon={<AddIcon />}
                     onClick={() => setOpenDialog(true)}
                 >
-                    Add Product
+                    Thêm Sản phẩm
                 </Button>
             </Box>
 
@@ -150,11 +150,11 @@ export default function ProductsPage() {
                             <TableHead>
                                 <TableRow>
                                     <TableCell>ID</TableCell>
-                                    <TableCell>Name</TableCell>
-                                    <TableCell>Spec</TableCell>
-                                    <TableCell>Type</TableCell>
-                                    <TableCell>Original Price</TableCell>
-                                    <TableCell>Actions</TableCell>
+                                    <TableCell>Tên sản phẩm</TableCell>
+                                    <TableCell>Quy cách</TableCell>
+                                    <TableCell>Loại hàng</TableCell>
+                                    <TableCell>Giá gốc</TableCell>
+                                    <TableCell>Thao tác</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -166,7 +166,7 @@ export default function ProductsPage() {
                                         <TableCell>{product.type}</TableCell>
                                         <TableCell>{formatPrice(product.original_price)}</TableCell>
                                         <TableCell>
-                                            <Tooltip title="Edit Product">
+                                            <Tooltip title="Chỉnh sửa Sản phẩm">
                                                 <IconButton
                                                     color="primary"
                                                     onClick={() => handleEdit(product)}
@@ -186,32 +186,32 @@ export default function ProductsPage() {
             {/* Add/Edit Dialog */}
             <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
                 <DialogTitle>
-                    {editingProduct ? "Edit Product" : "Add New Product"}
+                    {editingProduct ? "Chỉnh sửa Sản phẩm" : "Thêm Sản phẩm Mới"}
                 </DialogTitle>
                 <DialogContent>
                     <Box sx={{ pt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
                         <TextField
-                            label="Product Name"
+                            label="Tên sản phẩm"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             fullWidth
                             required
                         />
                         <TextField
-                            label="Spec (Quy cách)"
+                            label="Quy cách"
                             type="number"
                             value={formData.spec}
                             onChange={(e) => setFormData({ ...formData, spec: parseInt(e.target.value) || 0 })}
                             fullWidth
                         />
                         <TextField
-                            label="Type (Loại hàng)"
+                            label="Loại hàng"
                             value={formData.type}
                             onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                             fullWidth
                         />
                         <TextField
-                            label="Original Price (VND)"
+                            label="Giá gốc (VND)"
                             type="number"
                             value={formData.original_price}
                             onChange={(e) => setFormData({ ...formData, original_price: parseInt(e.target.value) || 0 })}
@@ -221,9 +221,9 @@ export default function ProductsPage() {
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseDialog}>Cancel</Button>
+                    <Button onClick={handleCloseDialog}>Hủy</Button>
                     <Button onClick={handleSubmit} variant="contained">
-                        {editingProduct ? "Update" : "Create"}
+                        {editingProduct ? "Cập nhật" : "Thêm"}
                     </Button>
                 </DialogActions>
             </Dialog>

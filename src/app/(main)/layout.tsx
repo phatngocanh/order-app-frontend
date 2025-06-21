@@ -39,7 +39,7 @@ export default function MainLayout({
             <AppBar position="static">
                 <Toolbar>
                     <Typography variant="h6" component="div" sx={{ mr: 3 }}>
-                        Order App Dashboard
+                        Ứng dụng Đặt hàng
                     </Typography>
                     
                     {/* Navigation Buttons */}
@@ -49,7 +49,7 @@ export default function MainLayout({
                         href="/dashboard"
                         sx={{ mr: 1 }}
                     >
-                        Dashboard
+                        Bảng điều khiển
                     </Button>
                     <Button 
                         color="inherit" 
@@ -57,14 +57,14 @@ export default function MainLayout({
                         href="/products"
                         sx={{ mr: 1 }}
                     >
-                        Products
+                        Sản phẩm
                     </Button>
                     
                     <Typography variant="body1" sx={{ ml: "auto", mr: 2 }}>
-                        Welcome, {username || "User"}!
+                        Chào mừng, {username || "Người dùng"}!
                     </Typography>
                     <Button color="inherit" onClick={handleLogout}>
-                        Logout
+                        Đăng xuất
                     </Button>
                 </Toolbar>
             </AppBar>

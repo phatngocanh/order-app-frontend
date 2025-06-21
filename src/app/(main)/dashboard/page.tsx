@@ -8,11 +8,11 @@ export default function DashboardPage() {
     return (
         <Container maxWidth="lg" sx={{ mt: 4 }}>
             <Typography variant="h4" component="h1" gutterBottom>
-                Welcome to the Dashboard
+                Chào mừng đến Bảng điều khiển
             </Typography>
 
             <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                You have successfully logged in to the system.
+                Bạn đã đăng nhập thành công vào hệ thống.
             </Typography>
 
             <Grid container spacing={3}>
@@ -20,10 +20,10 @@ export default function DashboardPage() {
                     <Card>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>
-                                Authentication Status
+                                Trạng thái Xác thực
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
-                                You are currently authenticated and can access the system.
+                                Bạn hiện đang được xác thực và có thể truy cập hệ thống.
                             </Typography>
                         </CardContent>
                     </Card>
@@ -33,14 +33,14 @@ export default function DashboardPage() {
                     <Card>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>
-                                Available Features
+                                Tính năng Có sẵn
                             </Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                The following features are now available:
+                                Các tính năng sau hiện có sẵn:
                             </Typography>
                             <Link href="/products" style={{ textDecoration: "none" }}>
                                 <Button variant="contained" color="primary" fullWidth>
-                                    Products Management
+                                    Quản lý Sản phẩm
                                 </Button>
                             </Link>
                         </CardContent>

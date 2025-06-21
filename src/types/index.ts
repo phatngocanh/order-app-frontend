@@ -40,7 +40,6 @@ export interface Product {
 export interface CreateProductRequest {
     name: string;
     spec: number;
-    type: string;
     original_price: number;
 }
 
@@ -48,7 +47,6 @@ export interface UpdateProductRequest {
     id: number;
     name: string;
     spec: number;
-    type: string;
     original_price: number;
 }
 
@@ -56,7 +54,6 @@ export interface ProductResponse {
     id: number;
     name: string;
     spec: number;
-    type: string;
     original_price: number;
 }
 

@@ -36,12 +36,10 @@ export default function ProductsPage() {
     const [formData, setFormData] = useState<{
         name: string;
         spec: number | "";
-        type: string;
         original_price: number | "";
     }>({
         name: "",
         spec: 0,
-        type: "",
         original_price: 0,
     });
 
@@ -71,7 +69,6 @@ export default function ProductsPage() {
 
             const dataToSubmit = {
                 name: formData.name,
-                type: formData.type,
                 spec: formData.spec === "" ? 0 : formData.spec,
                 original_price: formData.original_price === "" ? 0 : formData.original_price,
             };
@@ -91,7 +88,7 @@ export default function ProductsPage() {
             // Reset form and reload products
             setOpenDialog(false);
             setEditingProduct(null);
-            setFormData({ name: "", spec: 0, type: "", original_price: 0 });
+            setFormData({ name: "", spec: 0, original_price: 0 });
             await loadProducts();
         } catch (err) {
             setError("Không thể lưu sản phẩm. Vui lòng thử lại.");
@@ -105,7 +102,6 @@ export default function ProductsPage() {
         setFormData({
             name: product.name,
             spec: product.spec,
-            type: product.type,
             original_price: product.original_price,
         });
         setOpenDialog(true);
@@ -115,7 +111,7 @@ export default function ProductsPage() {
     const handleCloseDialog = () => {
         setOpenDialog(false);
         setEditingProduct(null);
-        setFormData({ name: "", spec: 0, type: "", original_price: 0 });
+        setFormData({ name: "", spec: 0, original_price: 0 });
         setError(null);
     };
 
@@ -165,7 +161,6 @@ export default function ProductsPage() {
                                     <TableCell>ID</TableCell>
                                     <TableCell>Tên sản phẩm</TableCell>
                                     <TableCell>Quy cách</TableCell>
-                                    <TableCell>Loại hàng</TableCell>
                                     <TableCell>Giá gốc</TableCell>
                                     <TableCell>Thao tác</TableCell>
                                 </TableRow>
@@ -176,7 +171,6 @@ export default function ProductsPage() {
                                         <TableCell>{product.id}</TableCell>
                                         <TableCell>{product.name}</TableCell>
                                         <TableCell>{product.spec}</TableCell>
-                                        <TableCell>{product.type}</TableCell>
                                         <TableCell>{formatPrice(product.original_price)}</TableCell>
                                         <TableCell>
                                             <Tooltip title="Chỉnh sửa Sản phẩm">
@@ -235,12 +229,6 @@ export default function ProductsPage() {
                                     }
                                 }
                             }}
-                            fullWidth
-                        />
-                        <TextField
-                            label="Loại hàng"
-                            value={formData.type}
-                            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                             fullWidth
                         />
                         <TextField

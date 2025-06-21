@@ -8,12 +8,12 @@
         "start": "next start",
         "lint:style": "stylelint --config=.stylelintrc.json --output-file=.tmp/stylelint_report.json 'src/**/*.{scss,css}'",
         "lint:js": "next lint --output-file .tmp/eslint_report.json",
-        "lint": "pnpm lint:js && pnpm lint:style",
+        "lint": "npm run lint:js && npm run lint:style",
         "tslint": "tsc --noEmit",
         "format:check": "prettier --check \"**/*.{ts,tsx,md,json,yaml,js,jsx}\"",
         "format": "prettier --write \"**/*.{ts,tsx,md,json,yaml,js,jsx}\"",
         "validate": "pnpm run format:check && pnpm run tslint && pnpm run lint",
-        "autofix": "eslint . --fix"
+        "autofix": "eslint src/**/*.{ts,tsx} --fix"
     },
     "dependencies": {
         "@emotion/react": "^11.11.3",

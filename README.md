@@ -4,9 +4,9 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## 🎨 Design & Theme
 
-- **UI Framework**: Material UI (MUI)
-- **Theme**: Blue and White color scheme
-- **Styling**: Tailwind CSS for additional styling needs
+-   **UI Framework**: Material UI (MUI)
+-   **Theme**: Blue and White color scheme
+-   **Styling**: Tailwind CSS for additional styling needs
 
 ## 📋 Coding Conventions
 
@@ -16,19 +16,19 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ### 📁 Component Structure
 
-- **Page-Level Components**: Each page has its own dedicated components
-- **No Shared Components**: Avoid creating common/shared components to maintain page isolation
-- **Self-Contained Logic**: All logic for a page stays within that page's components
-- **Material UI First**: Use Material UI components directly in pages, no need for separate component files
+-   **Page-Level Components**: Each page has its own dedicated components
+-   **No Shared Components**: Avoid creating common/shared components to maintain page isolation
+-   **Self-Contained Logic**: All logic for a page stays within that page's components
+-   **Material UI First**: Use Material UI components directly in pages, no need for separate component files
 
 ### 🔧 Technical Stack
 
-- **Framework**: Next.js 15 with App Router
-- **Language**: TypeScript
-- **UI Library**: Material UI (MUI)
-- **HTTP Client**: Axios (centralized client)
-- **Authentication**: Centralized auth handling
-- **Styling**: Tailwind CSS + MUI theme
+-   **Framework**: Next.js 15 with App Router
+-   **Language**: TypeScript
+-   **UI Library**: Material UI (MUI)
+-   **HTTP Client**: Axios (centralized client)
+-   **Authentication**: Centralized auth handling
+-   **Styling**: Tailwind CSS + MUI theme
 
 ### 📂 Project Structure
 
@@ -64,17 +64,20 @@ src/
 ### Environment Setup
 
 1. Create a `.env.local` file in the root directory:
+
 ```bash
 # Backend API Configuration
 NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install --legacy-peer-deps
 ```
 
 3. Run the development server:
+
 ```bash
 npm run dev
 ```
@@ -83,12 +86,12 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## 📝 Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run linting
-- `npm run format` - Format code with Prettier
-- `npm run validate` - Run all validation checks
+-   `npm run dev` - Start development server
+-   `npm run build` - Build for production
+-   `npm run start` - Start production server
+-   `npm run lint` - Run linting
+-   `npm run format` - Format code with Prettier
+-   `npm run validate` - Run all validation checks
 
 ## 🎨 Theme Configuration
 
@@ -97,14 +100,16 @@ The project uses a blue and white theme with Material UI. Theme configuration ca
 ## 🔐 Authentication
 
 Authentication is handled centrally through utilities in `src/lib/auth.ts`. Currently supports:
-- Login functionality
-- Token storage and retrieval
-- Logout functionality
+
+-   Login functionality
+-   Token storage and retrieval
+-   Logout functionality
 
 ## 🌐 API Integration
 
 All API calls use the centralized axios client located in `src/lib/axios.ts`. Currently supports:
-- Login endpoint: `POST /api/v1/users/login`
+
+-   Login endpoint: `POST /api/v1/users/login`
 
 The backend URL is configured via the `NEXT_PUBLIC_API_URL` environment variable.
 
@@ -112,10 +117,10 @@ The backend URL is configured via the `NEXT_PUBLIC_API_URL` environment variable
 
 To learn more about the technologies used:
 
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Material UI Documentation](https://mui.com/)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
-- [Axios Documentation](https://axios-http.com/docs/intro)
+-   [Next.js Documentation](https://nextjs.org/docs)
+-   [Material UI Documentation](https://mui.com/)
+-   [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+-   [Axios Documentation](https://axios-http.com/docs/intro)
 
 ## Deploy on Vercel
 

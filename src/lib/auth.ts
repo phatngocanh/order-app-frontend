@@ -1,61 +1,72 @@
 // Simple authentication utilities for login
 
 export interface LoginRequest {
-  username: string;
-  password: string;
+    username: string;
+    password: string;
 }
 
 export interface LoginResponse {
-  token: string;
+    token: string;
+    username: string;
 }
 
 export interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-  errors?: Array<{
-    code: string;
-    field: string;
-    message: string;
-  }>;
+    data: T;
+    success: boolean;
+    errors?: Array<{
+        code: string;
+        field: string;
+        message: string;
+    }>;
 }
 
 // Simple auth utilities
 export const auth = {
-  // Store token
-  setToken: (token: string): void => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('authToken', token);
-    }
-  },
+    // Store token and username
+    setToken: (token: string, username: string): void => {
+        if (typeof window !== "undefined") {
+            localStorage.setItem("authToken", token);
+            localStorage.setItem("username", username);
+        }
+    },
 
-  // Get token
-  getToken: (): string | null => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('authToken');
-    }
-    return null;
-  },
+    // Get token
+    getToken: (): string | null => {
+        if (typeof window !== "undefined") {
+            return localStorage.getItem("authToken");
+        }
+        return null;
+    },
 
-  // Clear auth
-  clearAuth: (): void => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('authToken');
-    }
-  },
+    // Get username
+    getUsername: (): string | null => {
+        if (typeof window !== "undefined") {
+            return localStorage.getItem("username");
+        }
+        return null;
+    },
 
-  // Check if authenticated
-  isAuthenticated: (): boolean => {
-    const token = auth.getToken();
-    return !!token;
-  },
+    // Clear auth
+    clearAuth: (): void => {
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("authToken");
+            localStorage.removeItem("username");
+        }
+    },
 
-  // Logout
-  logout: (): void => {
-    auth.clearAuth();
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login';
-    }
-  },
+    // Check if authenticated
+    isAuthenticated: (): boolean => {
+        const token = auth.getToken();
+        return !!token;
+    },
+
+    // Logout
+    logout: (): void => {
+        auth.clearAuth();
+        if (typeof window !== "undefined") {
+            window.location.href = "/login";
+        }
+    },
 };
 
-export default auth; 
+export default auth;

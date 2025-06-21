@@ -25,6 +25,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 -   **Page-Level Components**: Each page has its own dedicated components
 -   **Self-Contained Logic**: All logic for a page stays within that page's components
 -   **Material UI First**: Use Material UI components directly in pages
+-   **No Shared Components**: Avoid creating common/shared components to maintain page isolation
 
 ### 🔧 Technical Stack
 
@@ -53,9 +54,6 @@ src/
 │   ├── providers.tsx      # Client providers (MUI theme)
 │   ├── globals.css        # Global styles
 │   └── favicon.ico        # App icon
-├── components/            # Reusable components (if needed)
-│   ├── layouts/          # Layout components
-│   └── HelloWorld.tsx    # Example component
 ├── lib/                   # Utilities and configurations
 │   ├── axios.ts          # Centralized axios client
 │   ├── auth.ts           # Authentication utilities
@@ -70,12 +68,13 @@ src/
 1. **Route Groups**: Use `(main)` route group for authenticated pages with shared layout
 2. **Shared Layout**: Common header and navigation in `(main)/layout.tsx`
 3. **Page Isolation**: Each page should be self-contained with all its logic
-4. **API Calls**: Use the centralized axios client for all API requests
-5. **Authentication**: Handle auth through the centralized auth utilities
-6. **Styling**: Use MUI components with blue/white theme, Tailwind for custom styling
-7. **TypeScript**: Use strict typing for all components and functions
-8. **File Naming**: Use kebab-case for file names, PascalCase for components
-9. **Vietnamese Content**: All user-facing content must be in Vietnamese
+4. **No Shared Components**: Avoid creating common/shared components to maintain page isolation
+5. **API Calls**: Use the centralized axios client for all API requests
+6. **Authentication**: Handle auth through the centralized auth utilities
+7. **Styling**: Use MUI components with blue/white theme, Tailwind for custom styling
+8. **TypeScript**: Use strict typing for all components and functions
+9. **File Naming**: Use kebab-case for file names, PascalCase for components
+10. **Vietnamese Content**: All user-facing content must be in Vietnamese
 
 ### 📝 Structure Maintenance
 
@@ -104,25 +103,29 @@ NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
 2. Install dependencies:
 
 ```bash
-npm install --legacy-peer-deps
+pnpm install
 ```
 
 3. Run the development server:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## 📝 Available Scripts
 
--   `npm run dev` - Start development server
--   `npm run build` - Build for production
--   `npm run start` - Start production server
--   `npm run lint` - Run linting
--   `npm run format` - Format code with Prettier
--   `npm run validate` - Run all validation checks
+-   `pnpm run dev` - Start development server
+-   `pnpm run build` - Build for production
+-   `pnpm run start` - Start production server
+-   `pnpm run lint` - Run linting (JS + Style)
+-   `pnpm run lint:js` - Run JavaScript/TypeScript linting
+-   `pnpm run lint:style` - Run CSS/SCSS linting
+-   `pnpm run format` - Format code with Prettier
+-   `pnpm run format:check` - Check code formatting
+-   `pnpm run validate` - Run all validation checks
+-   `pnpm run autofix` - Auto-fix ESLint issues
 
 ## 🎨 Theme Configuration
 

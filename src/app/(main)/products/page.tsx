@@ -3,7 +3,7 @@
 import { useEffect,useState } from "react";
 
 import { productApi } from "@/lib/products";
-import { CreateProductRequest, ProductResponse, UpdateProductRequest } from "@/types";
+import { ProductResponse, UpdateProductRequest } from "@/types";
 import { Add as AddIcon, Edit as EditIcon } from "@mui/icons-material";
 import {
     Alert,
@@ -33,7 +33,12 @@ export default function ProductsPage() {
     const [error, setError] = useState<string | null>(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [editingProduct, setEditingProduct] = useState<ProductResponse | null>(null);
-    const [formData, setFormData] = useState<CreateProductRequest>({
+    const [formData, setFormData] = useState<{
+        name: string;
+        spec: number | "";
+        type: string;
+        original_price: number | "";
+    }>({
         name: "",
         spec: 0,
         type: "",
@@ -63,16 +68,24 @@ export default function ProductsPage() {
     const handleSubmit = async () => {
         try {
             setError(null);
+
+            const dataToSubmit = {
+                name: formData.name,
+                type: formData.type,
+                spec: formData.spec === "" ? 0 : formData.spec,
+                original_price: formData.original_price === "" ? 0 : formData.original_price,
+            };
+
             if (editingProduct) {
                 // Update existing product
                 const updateData: UpdateProductRequest = {
                     id: editingProduct.id,
-                    ...formData,
+                    ...dataToSubmit,
                 };
                 await productApi.update(updateData);
             } else {
                 // Create new product
-                await productApi.create(formData);
+                await productApi.create(dataToSubmit);
             }
             
             // Reset form and reload products
@@ -201,7 +214,27 @@ export default function ProductsPage() {
                             label="Quy cách"
                             type="number"
                             value={formData.spec}
-                            onChange={(e) => setFormData({ ...formData, spec: parseInt(e.target.value) || 0 })}
+                            onFocus={() => {
+                                if (formData.spec === 0) {
+                                    setFormData({ ...formData, spec: "" });
+                                }
+                            }}
+                            onBlur={() => {
+                                if (formData.spec === "") {
+                                    setFormData({ ...formData, spec: 0 });
+                                }
+                            }}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === "") {
+                                    setFormData({ ...formData, spec: "" });
+                                } else {
+                                    const num = parseInt(value, 10);
+                                    if (!isNaN(num)) {
+                                        setFormData({ ...formData, spec: num });
+                                    }
+                                }
+                            }}
                             fullWidth
                         />
                         <TextField
@@ -214,7 +247,27 @@ export default function ProductsPage() {
                             label="Giá gốc (VND)"
                             type="number"
                             value={formData.original_price}
-                            onChange={(e) => setFormData({ ...formData, original_price: parseInt(e.target.value) || 0 })}
+                            onFocus={() => {
+                                if (formData.original_price === 0) {
+                                    setFormData({ ...formData, original_price: "" });
+                                }
+                            }}
+                            onBlur={() => {
+                                if (formData.original_price === "") {
+                                    setFormData({ ...formData, original_price: 0 });
+                                }
+                            }}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === "") {
+                                    setFormData({ ...formData, original_price: "" });
+                                } else {
+                                    const num = parseInt(value, 10);
+                                    if (!isNaN(num)) {
+                                        setFormData({ ...formData, original_price: num });
+                                    }
+                                }
+                            }}
                             fullWidth
                             required
                         />

@@ -3,6 +3,7 @@ import { createTheme } from "@mui/material/styles";
 // Blue and white theme configuration
 export const theme = createTheme({
     palette: {
+        mode: "light", // Enforce light mode
         primary: {
             main: "#1976d2", // Material UI blue
             light: "#42a5f5",

@@ -25,6 +25,14 @@ export const api = {
     // POST request for login
     post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) =>
         apiClient.post<T>(url, data, config),
+    
+    // PUT request
+    put: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) =>
+        apiClient.put<T>(url, data, config),
+    
+    // GET request
+    get: <T = any>(url: string, config?: AxiosRequestConfig) =>
+        apiClient.get<T>(url, config),
 };
 
 export default apiClient;

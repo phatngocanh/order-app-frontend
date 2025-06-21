@@ -28,6 +28,46 @@ export interface PaginatedResponse<T> {
     };
 }
 
+// Product types
+export interface Product {
+    id: number;
+    name: string;
+    spec: number;           // Quy cách
+    type: string;           // Loại hàng
+    original_price: number; // Giá gốc (VND)
+}
+
+export interface CreateProductRequest {
+    name: string;
+    spec: number;
+    type: string;
+    original_price: number;
+}
+
+export interface UpdateProductRequest {
+    id: number;
+    name: string;
+    spec: number;
+    type: string;
+    original_price: number;
+}
+
+export interface ProductResponse {
+    id: number;
+    name: string;
+    spec: number;
+    type: string;
+    original_price: number;
+}
+
+export interface GetAllProductsResponse {
+    products: ProductResponse[];
+}
+
+export interface GetOneProductResponse {
+    product: ProductResponse;
+}
+
 // Order types (example for order app)
 export interface Order {
     id: string;

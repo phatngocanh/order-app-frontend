@@ -135,51 +135,41 @@ export default function OrdersPage() {
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            orders.map((order) => {
-                                const calculateOrderTotal = () => {
-                                    return order.order_items.reduce((total, item) => {
-                                        const itemTotal = item.quantity * item.selling_price;
-                                        const discount = (itemTotal * item.discount) / 100;
-                                        return total + (itemTotal - discount);
-                                    }, 0);
-                                };
-
-                                return (
-                                    <TableRow key={order.id}>
-                                        <TableCell>{order.id}</TableCell>
-                                        <TableCell>{order.customer.name}</TableCell>
-                                        <TableCell>{formatDate(order.order_date)}</TableCell>
-                                        <TableCell>
-                                            <Chip
-                                                label={getStatusLabel(order.delivery_status)}
-                                                color={getStatusColor(order.delivery_status) as any}
-                                                size="small"
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Chip
-                                                label={order.debt_status}
-                                                color={getStatusColor(order.debt_status) as any}
-                                                size="small"
-                                            />
-                                        </TableCell>
-                                        <TableCell>{order.order_items.length}</TableCell>
-                                        <TableCell>
-                                            {calculateOrderTotal().toLocaleString("vi-VN")} VND
-                                        </TableCell>
-                                        <TableCell>
-                                            <Button
-                                                component={Link}
-                                                href={`/orders/${order.id}`}
-                                                size="small"
-                                                variant="outlined"
-                                            >
-                                                Xem chi tiết
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })
+                            orders.map((order) => (
+                                <TableRow key={order.id}>
+                                    <TableCell>{order.id}</TableCell>
+                                    <TableCell>{order.customer.name}</TableCell>
+                                    <TableCell>{formatDate(order.order_date)}</TableCell>
+                                    <TableCell>
+                                        <Chip
+                                            label={getStatusLabel(order.delivery_status)}
+                                            color={getStatusColor(order.delivery_status) as any}
+                                            size="small"
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <Chip
+                                            label={order.debt_status}
+                                            color={getStatusColor(order.debt_status) as any}
+                                            size="small"
+                                        />
+                                    </TableCell>
+                                    <TableCell>{order.product_count ?? '-'}</TableCell>
+                                    <TableCell>
+                                        {(order.total_amount ?? 0).toLocaleString("vi-VN")} VND
+                                    </TableCell>
+                                    <TableCell>
+                                        <Button
+                                            component={Link}
+                                            href={`/orders/${order.id}`}
+                                            size="small"
+                                            variant="outlined"
+                                        >
+                                            Xem chi tiết
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))
                         )}
                     </TableBody>
                 </Table>

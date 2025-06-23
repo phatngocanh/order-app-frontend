@@ -126,6 +126,8 @@ export interface OrderResponse {
     status_transitioned_at?: string;
     order_items: OrderItemResponse[];
     customer: CustomerResponse;
+    total_amount?: number;
+    product_count?: number;
 }
 
 export interface OrderItemResponse {
@@ -214,6 +216,7 @@ export interface InventoryHistoryResponse {
     importer_name: string;
     imported_at: string;
     note?: string;
+    reference_id?: number;
 }
 
 export interface GetAllInventoryHistoriesResponse {

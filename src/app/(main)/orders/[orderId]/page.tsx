@@ -133,15 +133,6 @@ export default function OrderDetailPage() {
         }
     };
 
-    const calculateTotal = () => {
-        if (!order) return 0;
-        return order.order_items.reduce((total, item) => {
-            const itemTotal = item.quantity * item.selling_price;
-            const discount = (itemTotal * item.discount) / 100;
-            return total + (itemTotal - discount);
-        }, 0);
-    };
-
     const handleEditStatus = (type: 'delivery' | 'debt') => {
         setEditType(type);
         setEditStatus(type === 'delivery' ? order?.delivery_status || '' : order?.debt_status || '');
@@ -382,7 +373,7 @@ export default function OrderDetailPage() {
                                         Số lượng sản phẩm:
                                     </Typography>
                                     <Typography variant="h6">
-                                        {order.order_items.length}
+                                        {order.product_count ?? order.order_items.length}
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={6}>
@@ -390,7 +381,7 @@ export default function OrderDetailPage() {
                                         Tổng tiền:
                                     </Typography>
                                     <Typography variant="h6" color="primary">
-                                        {calculateTotal().toLocaleString("vi-VN")} VND
+                                        {(order.total_amount ?? 0).toLocaleString("vi-VN")} VND
                                     </Typography>
                                 </Grid>
                             </Grid>
@@ -421,35 +412,29 @@ export default function OrderDetailPage() {
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {order.order_items.map((item) => {
-                                            const itemTotal = item.quantity * item.selling_price;
-                                            const discount = (itemTotal * item.discount) / 100;
-                                            const finalAmount = itemTotal - discount;
-
-                                            return (
-                                                <TableRow key={item.id}>
-                                                    <TableCell>{item.id}</TableCell>
-                                                    <TableCell>{item.product_name || item.product_id}</TableCell>
-                                                    <TableCell>{item.number_of_boxes || "-"}</TableCell>
-                                                    <TableCell>{item.spec || "-"}</TableCell>
-                                                    <TableCell>{item.quantity}</TableCell>
-                                                    <TableCell>
-                                                        {item.selling_price.toLocaleString("vi-VN")} VND
-                                                    </TableCell>
-                                                    <TableCell>{item.discount}%</TableCell>
-                                                    <TableCell>
-                                                        {finalAmount.toLocaleString("vi-VN")} VND
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Chip
-                                                            label={getExportFromLabel(item.export_from)}
-                                                            color={getExportFromColor(item.export_from) as any}
-                                                            size="small"
-                                                        />
-                                                    </TableCell>
-                                                </TableRow>
-                                            );
-                                        })}
+                                        {order.order_items.map((item) => (
+                                            <TableRow key={item.id}>
+                                                <TableCell>{item.id}</TableCell>
+                                                <TableCell>{item.product_name || item.product_id}</TableCell>
+                                                <TableCell>{item.number_of_boxes || "-"}</TableCell>
+                                                <TableCell>{item.spec || "-"}</TableCell>
+                                                <TableCell>{item.quantity}</TableCell>
+                                                <TableCell>
+                                                    {item.selling_price.toLocaleString("vi-VN")} VND
+                                                </TableCell>
+                                                <TableCell>{item.discount}%</TableCell>
+                                                <TableCell>
+                                                    {(item.final_amount ?? 0).toLocaleString("vi-VN")} VND
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Chip
+                                                        label={getExportFromLabel(item.export_from)}
+                                                        color={getExportFromColor(item.export_from) as any}
+                                                        size="small"
+                                                    />
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
                                     </TableBody>
                                 </Table>
                             </TableContainer>

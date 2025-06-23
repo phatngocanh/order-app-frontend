@@ -194,7 +194,17 @@ export default function InventoryHistoryPage() {
                                             </TableCell>
                                             <TableCell>{item.importer_name}</TableCell>
                                             <TableCell>{formatDate(item.imported_at)}</TableCell>
-                                            <TableCell>{item.note || "-"}</TableCell>
+                                            <TableCell>
+                                                {item.note || "-"}
+                                                {item.reference_id != null && (
+                                                    <>
+                                                        {item.note ? " " : ""}
+                                                        <a href={`/orders/${item.reference_id}`} target="_blank" rel="noopener noreferrer" style={{ marginLeft: 4, color: '#1976d2' }}>
+                                                            (Xem đơn hàng)
+                                                        </a>
+                                                    </>
+                                                )}
+                                            </TableCell>
                                         </TableRow>
                                     ))
                                 )}

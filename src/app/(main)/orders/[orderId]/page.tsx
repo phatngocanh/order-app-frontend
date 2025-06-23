@@ -66,6 +66,10 @@ export default function OrderDetailPage() {
         }
     };
 
+    const formatDateOnly = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString("vi-VN");
+    };
+
     const formatDateTime = (dateString: string) => {
         return new Date(dateString).toLocaleString("vi-VN", {
             year: 'numeric',
@@ -264,7 +268,7 @@ export default function OrderDetailPage() {
                                         Ngày đặt hàng:
                                     </Typography>
                                     <Typography variant="body1">
-                                        {formatDateTime(order.order_date)}
+                                        {formatDateOnly(order.order_date)}
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={6}>

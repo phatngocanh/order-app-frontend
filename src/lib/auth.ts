@@ -1,4 +1,6 @@
 // Simple authentication utilities for login
+import { api } from "@/lib/axios";
+import { ApiResponse } from "@/types";
 
 export interface LoginRequest {
     username: string;
@@ -10,15 +12,14 @@ export interface LoginResponse {
     username: string;
 }
 
-export interface ApiResponse<T> {
-    data: T;
-    success: boolean;
-    errors?: Array<{
-        code: string;
-        field: string;
-        message: string;
-    }>;
-}
+// User API functions
+export const userApi = {
+    // Login user
+    login: async (data: LoginRequest): Promise<LoginResponse> => {
+        const response = await api.post<ApiResponse<LoginResponse>>("/users/login", data);
+        return response.data.data;
+    },
+};
 
 // Simple auth utilities
 export const auth = {

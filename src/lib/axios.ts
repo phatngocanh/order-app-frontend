@@ -1,14 +1,30 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 
+import { auth } from "@/lib/auth";
+
 // Create axios instance with default config
-// Set NEXT_PUBLIC_API_URL in .env.local file (e.g., http://localhost:3000/api/v1)
+// Set NEXT_PUBLIC_API_URL in .env.local file (e.g., http://localhost:8080/api/v1)
 const apiClient: AxiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1",
+    baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1",
     timeout: 10000,
     headers: {
         "Content-Type": "application/json",
     },
 });
+
+// Request interceptor to add auth token
+apiClient.interceptors.request.use(
+    (config) => {
+        const token = auth.getToken();
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
 
 // Response interceptor for error handling
 apiClient.interceptors.response.use(
@@ -16,6 +32,10 @@ apiClient.interceptors.response.use(
         return response;
     },
     (error: AxiosError) => {
+        // Handle 401 errors by redirecting to login
+        if (error.response?.status === 401) {
+            auth.logout();
+        }
         return Promise.reject(error);
     },
 );

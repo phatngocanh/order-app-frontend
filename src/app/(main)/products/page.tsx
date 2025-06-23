@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 
 import { productApi } from "@/lib/products";
-import { ProductResponse, UpdateProductRequest } from "@/types";
-import { Add as AddIcon, Edit as EditIcon } from "@mui/icons-material";
+import { InventoryResponse, ProductResponse, UpdateProductRequest } from "@/types";
+import { Add as AddIcon, Edit as EditIcon, Inventory as InventoryIcon } from "@mui/icons-material";
 import {
     Alert,
     Box,
@@ -29,6 +29,7 @@ import {
 
 export default function ProductsPage() {
     const [products, setProducts] = useState<ProductResponse[]>([]);
+    const [inventories, setInventories] = useState<{ [key: number]: InventoryResponse }>({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [openDialog, setOpenDialog] = useState(false);
@@ -43,16 +44,40 @@ export default function ProductsPage() {
         original_price: 0,
     });
 
-    // Load products
+    // Load products and their inventories
     const loadProducts = async () => {
         try {
             setLoading(true);
             setError(null);
+            
+            // Load products
             const data = await productApi.getAll();
             setProducts(data);
-        } catch (err) {
-            setError("Không thể tải danh sách sản phẩm. Vui lòng thử lại.");
+            
+            // Load inventory for each product
+            const inventoryData: { [key: number]: InventoryResponse } = {};
+            for (const product of data) {
+                try {
+                    const inventory = await productApi.getInventory(product.id);
+                    inventoryData[product.id] = inventory;
+                } catch (err) {
+                    console.error(`Error loading inventory for product ${product.id}:`, err);
+                }
+            }
+            setInventories(inventoryData);
+        } catch (err: any) {
             console.error("Error loading products:", err);
+            
+            // Extract error message from backend response
+            let errorMessage = "Không thể tải danh sách sản phẩm. Vui lòng thử lại.";
+            
+            if (err.response?.data?.errors && err.response.data.errors.length > 0) {
+                errorMessage = err.response.data.errors[0].message;
+            } else if (err.response?.data?.message) {
+                errorMessage = err.response.data.message;
+            }
+            
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -90,9 +115,19 @@ export default function ProductsPage() {
             setEditingProduct(null);
             setFormData({ name: "", spec: 0, original_price: 0 });
             await loadProducts();
-        } catch (err) {
-            setError("Không thể lưu sản phẩm. Vui lòng thử lại.");
+        } catch (err: any) {
             console.error("Error saving product:", err);
+            
+            // Extract error message from backend response
+            let errorMessage = "Không thể lưu sản phẩm. Vui lòng thử lại.";
+            
+            if (err.response?.data?.errors && err.response.data.errors.length > 0) {
+                errorMessage = err.response.data.errors[0].message;
+            } else if (err.response?.data?.message) {
+                errorMessage = err.response.data.message;
+            }
+            
+            setError(errorMessage);
         }
     };
 
@@ -162,28 +197,47 @@ export default function ProductsPage() {
                                     <TableCell>Tên sản phẩm</TableCell>
                                     <TableCell>Quy cách</TableCell>
                                     <TableCell>Giá gốc</TableCell>
+                                    <TableCell>Số lượng kho</TableCell>
+                                    <TableCell>Phiên bản</TableCell>
                                     <TableCell>Thao tác</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {products.map((product) => (
-                                    <TableRow key={product.id}>
-                                        <TableCell>{product.id}</TableCell>
-                                        <TableCell>{product.name}</TableCell>
-                                        <TableCell>{product.spec}</TableCell>
-                                        <TableCell>{formatPrice(product.original_price)}</TableCell>
-                                        <TableCell>
-                                            <Tooltip title="Chỉnh sửa Sản phẩm">
-                                                <IconButton
-                                                    color="primary"
-                                                    onClick={() => handleEdit(product)}
-                                                >
-                                                    <EditIcon />
-                                                </IconButton>
-                                            </Tooltip>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                {products.map((product) => {
+                                    const inventory = inventories[product.id];
+                                    return (
+                                        <TableRow key={product.id}>
+                                            <TableCell>{product.id}</TableCell>
+                                            <TableCell>{product.name}</TableCell>
+                                            <TableCell>{product.spec}</TableCell>
+                                            <TableCell>{formatPrice(product.original_price)}</TableCell>
+                                            <TableCell>
+                                                {inventory ? inventory.quantity : "N/A"}
+                                            </TableCell>
+                                            <TableCell>
+                                                {inventory ? inventory.version : "N/A"}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Tooltip title="Chỉnh sửa Sản phẩm">
+                                                    <IconButton
+                                                        color="primary"
+                                                        onClick={() => handleEdit(product)}
+                                                    >
+                                                        <EditIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Xem lịch sử kho">
+                                                    <IconButton
+                                                        color="secondary"
+                                                        onClick={() => window.location.href = `/inventory-history?product=${product.id}`}
+                                                    >
+                                                        <InventoryIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     </TableContainer>

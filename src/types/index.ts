@@ -129,3 +129,31 @@ export interface AppError {
     message: string;
     details?: any;
 }
+
+// Inventory types
+export interface InventoryResponse {
+    id: number;
+    product_id: number;
+    quantity: number;
+    version: string;
+}
+
+export interface UpdateInventoryQuantityRequest {
+    quantity: number;
+    note?: string;
+    version: string; // Current version for optimistic locking
+}
+
+// Inventory History types
+export interface InventoryHistoryResponse {
+    id: number;
+    product_id: number;
+    quantity: number;
+    importer_name: string;
+    imported_at: string;
+    note?: string;
+}
+
+export interface GetAllInventoryHistoriesResponse {
+    inventory_histories: InventoryHistoryResponse[];
+}

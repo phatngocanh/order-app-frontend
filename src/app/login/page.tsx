@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 
-import { ApiResponse, auth, LoginRequest, LoginResponse } from "@/lib/auth";
-import { api } from "@/lib/axios";
-import { Alert, Box, Button, CircularProgress,Container, Paper, TextField, Typography } from "@mui/material";
+import { auth, LoginRequest, userApi } from "@/lib/auth";
+import { Alert, Box, Button, CircularProgress, Container, Paper, TextField, Typography } from "@mui/material";
 
 export default function LoginPage() {
     const [formData, setFormData] = useState<LoginRequest>({
@@ -27,17 +26,12 @@ export default function LoginPage() {
         setError(null);
 
         try {
-            const response = await api.post<ApiResponse<LoginResponse>>("/users/login", formData);
-
-            if (response.data.success) {
-                auth.setToken(response.data.data.token, response.data.data.username);
-                window.location.href = "/dashboard";
-            } else {
-                setError("Login failed. Please check your credentials.");
-            }
+            const response = await userApi.login(formData);
+            auth.setToken(response.token, response.username);
+            window.location.href = "/dashboard";
         } catch (err: any) {
             console.error("Login error:", err);
-            setError(err.response?.data?.errors?.[0]?.message || "Login failed. Please try again.");
+            setError(err.response?.data?.errors?.[0]?.message || "Đăng nhập thất bại. Vui lòng thử lại.");
         } finally {
             setLoading(false);
         }
@@ -55,11 +49,11 @@ export default function LoginPage() {
             >
                 <Paper sx={{ p: 4, width: "100%" }}>
                     <Typography variant="h4" component="h1" align="center" gutterBottom>
-                        Login
+                        Đăng nhập
                     </Typography>
 
                     <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 3 }}>
-                        Enter your credentials to access the system
+                        Nhập thông tin đăng nhập để truy cập hệ thống
                     </Typography>
 
                     {error && (
@@ -71,7 +65,7 @@ export default function LoginPage() {
                     <form onSubmit={handleSubmit}>
                         <TextField
                             fullWidth
-                            label="Username"
+                            label="Tên đăng nhập"
                             value={formData.username}
                             onChange={handleInputChange("username")}
                             margin="normal"
@@ -80,7 +74,7 @@ export default function LoginPage() {
 
                         <TextField
                             fullWidth
-                            label="Password"
+                            label="Mật khẩu"
                             type="password"
                             value={formData.password}
                             onChange={handleInputChange("password")}
@@ -96,7 +90,7 @@ export default function LoginPage() {
                             disabled={loading}
                             sx={{ mt: 3, mb: 2 }}
                         >
-                            {loading ? <CircularProgress size={24} /> : "Login"}
+                            {loading ? <CircularProgress size={24} /> : "Đăng nhập"}
                         </Button>
                     </form>
                 </Paper>

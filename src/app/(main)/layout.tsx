@@ -59,6 +59,22 @@ export default function MainLayout({
                     >
                         Sản phẩm
                     </Button>
+                    <Button 
+                        color="inherit" 
+                        component={Link} 
+                        href="/inventory"
+                        sx={{ mr: 1 }}
+                    >
+                        Kho
+                    </Button>
+                    <Button 
+                        color="inherit" 
+                        component={Link} 
+                        href="/inventory-history"
+                        sx={{ mr: 1 }}
+                    >
+                        Lịch sử Kho
+                    </Button>
                     
                     <Typography variant="body1" sx={{ ml: "auto", mr: 2 }}>
                         Chào mừng, {username || "Người dùng"}!

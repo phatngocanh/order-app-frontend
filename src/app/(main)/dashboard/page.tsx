@@ -12,7 +12,7 @@ export default function DashboardPage() {
             </Typography>
 
             <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                Bạn đã đăng nhập thành công vào hệ thống.
+                Bạn đã đăng nhập thành công vào hệ thống quản lý đơn hàng.
             </Typography>
 
             <Grid container spacing={3}>
@@ -33,14 +33,50 @@ export default function DashboardPage() {
                     <Card>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>
-                                Tính năng Có sẵn
+                                Quản lý Sản phẩm
                             </Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                Các tính năng sau hiện có sẵn:
+                                Tạo, chỉnh sửa và quản lý thông tin sản phẩm.
                             </Typography>
                             <Link href="/products" style={{ textDecoration: "none" }}>
                                 <Button variant="contained" color="primary" fullWidth>
                                     Quản lý Sản phẩm
+                                </Button>
+                            </Link>
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                    <Card>
+                        <CardContent>
+                            <Typography variant="h6" gutterBottom>
+                                Quản lý Kho
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                Cập nhật số lượng tồn kho cho các sản phẩm.
+                            </Typography>
+                            <Link href="/inventory" style={{ textDecoration: "none" }}>
+                                <Button variant="contained" color="secondary" fullWidth>
+                                    Quản lý Kho
+                                </Button>
+                            </Link>
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                    <Card>
+                        <CardContent>
+                            <Typography variant="h6" gutterBottom>
+                                Lịch sử Kho
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                Xem lịch sử thay đổi số lượng kho theo sản phẩm.
+                            </Typography>
+                            <Link href="/inventory-history" style={{ textDecoration: "none" }}>
+                                <Button variant="contained" color="info" fullWidth>
+                                    Lịch sử Kho
                                 </Button>
                             </Link>
                         </CardContent>

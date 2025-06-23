@@ -31,4 +31,10 @@ export const ordersApi = {
         const response = await api.get<ApiResponse<GetOneOrderResponse>>(`/orders/${orderId}`);
         return response.data.data;
     },
+
+    // Delete order by ID
+    delete: async (orderId: number) => {
+        const response = await api.delete(`/orders/${orderId}`);
+        return response.data;
+    },
 }; 

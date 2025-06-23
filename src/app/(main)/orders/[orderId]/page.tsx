@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { ordersApi } from "@/lib/orders";
 import { OrderResponse, UpdateOrderRequest } from "@/types";
-import { ArrowBack as ArrowBackIcon, Edit as EditIcon } from "@mui/icons-material";
+import { ArrowBack as ArrowBackIcon, Delete as DeleteIcon, Edit as EditIcon } from "@mui/icons-material";
 import {
     Alert,
     Box,
@@ -16,6 +16,7 @@ import {
     Dialog,
     DialogActions,
     DialogContent,
+    DialogContentText,
     DialogTitle,
     FormControl,
     Grid,
@@ -46,6 +47,8 @@ export default function OrderDetailPage() {
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [editType, setEditType] = useState<'delivery' | 'debt'>('delivery');
     const [editStatus, setEditStatus] = useState('');
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         if (orderId) {
@@ -64,6 +67,32 @@ export default function OrderDetailPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleDeleteClick = () => {
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!order) return;
+
+        try {
+            setDeleting(true);
+            await ordersApi.delete(order.id);
+            
+            // Redirect to orders list after successful deletion
+            router.push("/orders");
+        } catch (err) {
+            setError("Không thể xóa đơn hàng");
+            console.error("Error deleting order:", err);
+            setDeleteDialogOpen(false);
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    const handleDeleteCancel = () => {
+        setDeleteDialogOpen(false);
     };
 
     const formatDateOnly = (dateString: string) => {
@@ -207,17 +236,27 @@ export default function OrderDetailPage() {
 
     return (
         <Box sx={{ p: 3 }}>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Button
+                        startIcon={<ArrowBackIcon />}
+                        onClick={() => router.push("/orders")}
+                        sx={{ mr: 2 }}
+                    >
+                        Quay lại
+                    </Button>
+                    <Typography variant="h4" component="h1">
+                        Chi tiết đơn hàng #{order.id}
+                    </Typography>
+                </Box>
                 <Button
-                    startIcon={<ArrowBackIcon />}
-                    onClick={() => router.push("/orders")}
-                    sx={{ mr: 2 }}
+                    variant="outlined"
+                    color="error"
+                    startIcon={<DeleteIcon />}
+                    onClick={handleDeleteClick}
                 >
-                    Quay lại
+                    Xóa đơn hàng
                 </Button>
-                <Typography variant="h4" component="h1">
-                    Chi tiết đơn hàng #{order.id}
-                </Typography>
             </Box>
 
             {error && (
@@ -483,6 +522,37 @@ export default function OrderDetailPage() {
                         disabled={updating || !editStatus}
                     >
                         {updating ? "Đang cập nhật..." : "Cập nhật"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Delete Dialog */}
+            <Dialog
+                open={deleteDialogOpen}
+                onClose={handleDeleteCancel}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{"Xác nhận xóa đơn hàng"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Bạn có chắc chắn muốn xóa đơn hàng số {order.id} của khách hàng {order.customer.name}?
+                        <br />
+                        <br />
+                        <strong>Lưu ý:</strong> Nếu đơn hàng này có sản phẩm được xuất từ kho, chúng sẽ được hoàn lại vào kho.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleDeleteCancel} disabled={deleting}>
+                        Hủy
+                    </Button>
+                    <Button 
+                        onClick={handleDeleteConfirm} 
+                        color="error" 
+                        variant="contained"
+                        disabled={deleting}
+                    >
+                        {deleting ? "Đang xóa..." : "Xóa"}
                     </Button>
                 </DialogActions>
             </Dialog>

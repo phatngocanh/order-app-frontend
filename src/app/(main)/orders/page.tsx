@@ -5,11 +5,16 @@ import { useEffect, useState } from "react";
 
 import { ordersApi } from "@/lib/orders";
 import { OrderResponse } from "@/types";
-import { Add as AddIcon } from "@mui/icons-material";
+import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import {
     Box,
     Button,
     Chip,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
     Paper,
     Table,
     TableBody,
@@ -24,6 +29,9 @@ export default function OrdersPage() {
     const [orders, setOrders] = useState<OrderResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [orderToDelete, setOrderToDelete] = useState<OrderResponse | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         loadOrders();
@@ -40,6 +48,37 @@ export default function OrdersPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleDeleteClick = (order: OrderResponse) => {
+        setOrderToDelete(order);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!orderToDelete) return;
+
+        try {
+            setDeleting(true);
+            await ordersApi.delete(orderToDelete.id);
+            
+            // Remove the deleted order from the list
+            setOrders(orders.filter(order => order.id !== orderToDelete.id));
+            
+            // Close dialog and reset state
+            setDeleteDialogOpen(false);
+            setOrderToDelete(null);
+        } catch (err) {
+            setError("Không thể xóa đơn hàng");
+            console.error("Error deleting order:", err);
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    const handleDeleteCancel = () => {
+        setDeleteDialogOpen(false);
+        setOrderToDelete(null);
     };
 
     const formatDate = (dateString: string) => {
@@ -159,14 +198,25 @@ export default function OrdersPage() {
                                         {(order.total_amount ?? 0).toLocaleString("vi-VN")} VND
                                     </TableCell>
                                     <TableCell>
-                                        <Button
-                                            component={Link}
-                                            href={`/orders/${order.id}`}
-                                            size="small"
-                                            variant="outlined"
-                                        >
-                                            Xem chi tiết
-                                        </Button>
+                                        <Box sx={{ display: "flex", gap: 1 }}>
+                                            <Button
+                                                component={Link}
+                                                href={`/orders/${order.id}`}
+                                                size="small"
+                                                variant="outlined"
+                                            >
+                                                Xem chi tiết
+                                            </Button>
+                                            <Button
+                                                size="small"
+                                                variant="outlined"
+                                                color="error"
+                                                startIcon={<DeleteIcon />}
+                                                onClick={() => handleDeleteClick(order)}
+                                            >
+                                                Xóa
+                                            </Button>
+                                        </Box>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -174,6 +224,39 @@ export default function OrdersPage() {
                     </TableBody>
                 </Table>
             </TableContainer>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog
+                open={deleteDialogOpen}
+                onClose={handleDeleteCancel}
+                aria-labelledby="delete-dialog-title"
+                aria-describedby="delete-dialog-description"
+            >
+                <DialogTitle id="delete-dialog-title">
+                    Xác nhận xóa đơn hàng
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="delete-dialog-description">
+                        Bạn có chắc chắn muốn xóa đơn hàng số {orderToDelete?.id} của khách hàng {orderToDelete?.customer.name}?
+                        <br />
+                        <br />
+                        <strong>Lưu ý:</strong> Nếu đơn hàng này có sản phẩm được xuất từ kho, chúng sẽ được hoàn lại vào kho.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleDeleteCancel} disabled={deleting}>
+                        Hủy
+                    </Button>
+                    <Button 
+                        onClick={handleDeleteConfirm} 
+                        color="error" 
+                        variant="contained"
+                        disabled={deleting}
+                    >
+                        {deleting ? "Đang xóa..." : "Xóa"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 } 

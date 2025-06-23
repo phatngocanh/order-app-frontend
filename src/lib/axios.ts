@@ -53,6 +53,10 @@ export const api = {
     // GET request
     get: <T = any>(url: string, config?: AxiosRequestConfig) =>
         apiClient.get<T>(url, config),
+    
+    // DELETE request
+    delete: <T = any>(url: string, config?: AxiosRequestConfig) =>
+        apiClient.delete<T>(url, config),
 };
 
 export default apiClient;

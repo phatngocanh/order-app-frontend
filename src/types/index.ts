@@ -149,6 +149,7 @@ export interface InventoryHistoryResponse {
     id: number;
     product_id: number;
     quantity: number;
+    final_quantity: number;
     importer_name: string;
     imported_at: string;
     note?: string;

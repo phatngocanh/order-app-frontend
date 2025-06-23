@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { productApi } from "@/lib/products";
 import { InventoryHistoryResponse, ProductResponse } from "@/types";
@@ -158,7 +158,8 @@ export default function InventoryHistoryPage() {
                             <TableHead>
                                 <TableRow>
                                     <TableCell>ID</TableCell>
-                                    <TableCell>Số lượng</TableCell>
+                                    <TableCell>Số lượng thay đổi</TableCell>
+                                    <TableCell>Số lượng sau cập nhật</TableCell>
                                     <TableCell>Người nhập</TableCell>
                                     <TableCell>Ngày nhập</TableCell>
                                     <TableCell>Ghi chú</TableCell>
@@ -167,7 +168,7 @@ export default function InventoryHistoryPage() {
                             <TableBody>
                                 {history.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} align="center">
+                                        <TableCell colSpan={6} align="center">
                                             Không có lịch sử kho cho sản phẩm này
                                         </TableCell>
                                     </TableRow>
@@ -184,6 +185,11 @@ export default function InventoryHistoryPage() {
                                                     }}
                                                 >
                                                     {item.quantity >= 0 ? '+' : ''}{item.quantity}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                                                    {item.final_quantity}
                                                 </Typography>
                                             </TableCell>
                                             <TableCell>{item.importer_name}</TableCell>

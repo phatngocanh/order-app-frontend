@@ -62,6 +62,14 @@ export default function MainLayout({
                     <Button 
                         color="inherit" 
                         component={Link} 
+                        href="/customers"
+                        sx={{ mr: 1 }}
+                    >
+                        Khách hàng
+                    </Button>
+                    <Button 
+                        color="inherit" 
+                        component={Link} 
                         href="/inventory"
                         sx={{ mr: 1 }}
                     >

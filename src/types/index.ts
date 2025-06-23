@@ -158,3 +158,38 @@ export interface InventoryHistoryResponse {
 export interface GetAllInventoryHistoriesResponse {
     inventory_histories: InventoryHistoryResponse[];
 }
+
+// Customer types
+export interface Customer {
+    id: number;
+    name: string;
+    phone: string;
+    address: string;
+}
+
+export interface CreateCustomerRequest {
+    name: string;
+    phone: string;
+    address: string;
+}
+
+export interface UpdateCustomerRequest {
+    name?: string;
+    phone?: string;
+    address?: string;
+}
+
+export interface CustomerResponse {
+    id: number;
+    name: string;
+    phone: string;
+    address: string;
+}
+
+export interface GetAllCustomersResponse {
+    customers: CustomerResponse[];
+}
+
+export interface GetOneCustomerResponse {
+    customer: CustomerResponse;
+}

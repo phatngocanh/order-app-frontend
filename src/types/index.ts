@@ -152,6 +152,22 @@ export interface GetOneOrderResponse {
     order: OrderResponse;
 }
 
+// Order Image types
+export interface OrderImage {
+    id: number;
+    order_id: number;
+    image_url: string;
+    image_type?: string;
+}
+
+export interface UploadOrderImageResponse {
+    orderImages: OrderImage;
+}
+
+export interface GetOrderImagesResponse {
+    orderImages: OrderImage[];
+}
+
 // Form types
 export interface FormField {
     name: string;

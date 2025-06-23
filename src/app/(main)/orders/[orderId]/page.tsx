@@ -1,10 +1,12 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import ImageUpload from "@/components/ImageUpload";
+import { orderImagesApi } from "@/lib/order-images";
 import { ordersApi } from "@/lib/orders";
-import { OrderResponse, UpdateOrderRequest } from "@/types";
+import { OrderImage,OrderResponse, UpdateOrderRequest } from "@/types";
 import { ArrowBack as ArrowBackIcon, Delete as DeleteIcon, Edit as EditIcon } from "@mui/icons-material";
 import {
     Alert,
@@ -49,14 +51,13 @@ export default function OrderDetailPage() {
     const [editStatus, setEditStatus] = useState('');
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    
+    // Image states
+    const [images, setImages] = useState<OrderImage[]>([]);
+    const [loadingImages, setLoadingImages] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
 
-    useEffect(() => {
-        if (orderId) {
-            loadOrder();
-        }
-    }, [orderId]);
-
-    const loadOrder = async () => {
+    const loadOrder = useCallback(async () => {
         try {
             setLoading(true);
             const response = await ordersApi.getOne(orderId);
@@ -67,7 +68,26 @@ export default function OrderDetailPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [orderId]);
+
+    const loadImages = useCallback(async () => {
+        try {
+            setLoadingImages(true);
+            const response = await orderImagesApi.getImagesByOrderId(orderId);
+            setImages(response.orderImages);
+        } catch (err) {
+            console.error("Error loading images:", err);
+        } finally {
+            setLoadingImages(false);
+        }
+    }, [orderId]);
+
+    useEffect(() => {
+        if (orderId) {
+            loadOrder();
+            loadImages();
+        }
+    }, [orderId, loadOrder, loadImages]);
 
     const handleDeleteClick = () => {
         setDeleteDialogOpen(true);
@@ -204,6 +224,34 @@ export default function OrderDetailPage() {
             console.error("Error updating order status:", err);
         } finally {
             setUpdating(false);
+        }
+    };
+
+    const handleImageUpload = async (file: File) => {
+        try {
+            setUploadingImage(true);
+            setError(null);
+            await orderImagesApi.uploadImage(orderId, file);
+            await loadImages(); // Reload images after upload
+            setSuccess("Ảnh đã được tải lên thành công");
+            setTimeout(() => setSuccess(null), 3000);
+        } catch (err) {
+            setError("Không thể tải ảnh lên");
+            console.error("Error uploading image:", err);
+        } finally {
+            setUploadingImage(false);
+        }
+    };
+
+    const handleImageDelete = async (imageId: number) => {
+        try {
+            await orderImagesApi.deleteImage(orderId, imageId);
+            await loadImages(); // Reload images after deletion
+            setSuccess("Ảnh đã được xóa thành công");
+            setTimeout(() => setSuccess(null), 3000);
+        } catch (err) {
+            setError("Không thể xóa ảnh");
+            console.error("Error deleting image:", err);
         }
     };
 
@@ -477,6 +525,24 @@ export default function OrderDetailPage() {
                                     </TableBody>
                                 </Table>
                             </TableContainer>
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                {/* Order Images */}
+                <Grid item xs={12}>
+                    <Card>
+                        <CardContent>
+                            <Typography variant="h6" gutterBottom>
+                                Ảnh đơn hàng
+                            </Typography>
+                            <ImageUpload
+                                onUpload={handleImageUpload}
+                                onDelete={handleImageDelete}
+                                images={images}
+                                loading={loadingImages}
+                                disabled={uploadingImage}
+                            />
                         </CardContent>
                     </Card>
                 </Grid>

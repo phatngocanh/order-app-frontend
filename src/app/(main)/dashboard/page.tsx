@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { customerApi } from "@/lib/customers";
+import { ordersApi } from "@/lib/orders";
 import { productApi } from "@/lib/products";
 import { 
     Alert,
@@ -21,6 +22,7 @@ import {
     Info as InfoIcon,
     Inventory as InventoryIcon,
     People as PeopleIcon,
+    Receipt as ReceiptIcon,
     ShoppingCart as ShoppingCartIcon,
     TrendingUp as TrendingUpIcon,
 } from "@mui/icons-material";
@@ -30,6 +32,8 @@ interface DashboardStats {
     totalCustomers: number;
     totalInventoryItems: number;
     lowStockProducts: number;
+    totalOrders: number;
+    pendingOrders: number;
 }
 
 export default function DashboardPage() {
@@ -38,6 +42,8 @@ export default function DashboardPage() {
         totalCustomers: 0,
         totalInventoryItems: 0,
         lowStockProducts: 0,
+        totalOrders: 0,
+        pendingOrders: 0,
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -48,10 +54,11 @@ export default function DashboardPage() {
                 setLoading(true);
                 setError(null);
 
-                // Load products and customers in parallel
-                const [products, customers] = await Promise.all([
+                // Load products, customers, and orders in parallel
+                const [products, customers, orders] = await Promise.all([
                     productApi.getAll(),
                     customerApi.getAll(),
+                    ordersApi.getAll(),
                 ]);
 
                 // Calculate inventory stats
@@ -70,11 +77,18 @@ export default function DashboardPage() {
                     }
                 }
 
+                // Calculate order stats
+                const pendingOrders = orders.orders.filter(order => 
+                    order.delivery_status !== "COMPLETED"
+                ).length;
+
                 setStats({
                     totalProducts: products.length,
                     totalCustomers: customers.length,
                     totalInventoryItems,
                     lowStockProducts,
+                    totalOrders: orders.orders.length,
+                    pendingOrders,
                 });
             } catch (err: any) {
                 console.error("Error loading dashboard data:", err);
@@ -147,6 +161,20 @@ export default function DashboardPage() {
                 <Grid item xs={12} sm={6} md={3}>
                     <Card>
                         <CardContent sx={{ textAlign: "center" }}>
+                            <ReceiptIcon color="success" sx={{ fontSize: 40, mb: 1 }} />
+                            <Typography variant="h4" component="div">
+                                {stats.totalOrders}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                Tổng đơn hàng
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                <Grid item xs={12} sm={6} md={3}>
+                    <Card>
+                        <CardContent sx={{ textAlign: "center" }}>
                             <InventoryIcon color="info" sx={{ fontSize: 40, mb: 1 }} />
                             <Typography variant="h4" component="div">
                                 {stats.totalInventoryItems}
@@ -162,6 +190,25 @@ export default function DashboardPage() {
                     <Card>
                         <CardContent sx={{ textAlign: "center" }}>
                             <TrendingUpIcon color="warning" sx={{ fontSize: 40, mb: 1 }} />
+                            <Typography variant="h4" component="div">
+                                {stats.pendingOrders}
+                            </Typography>
+                            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5 }}>
+                                <Typography variant="body2" color="text.secondary">
+                                    Đơn hàng chờ xử lý
+                                </Typography>
+                                <Tooltip title="Đơn hàng chưa hoàn thành (mọi trạng thái khác ngoài Hoàn thành)">
+                                    <InfoIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                                </Tooltip>
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                <Grid item xs={12} sm={6} md={3}>
+                    <Card>
+                        <CardContent sx={{ textAlign: "center" }}>
+                            <TrendingUpIcon color="error" sx={{ fontSize: 40, mb: 1 }} />
                             <Typography variant="h4" component="div">
                                 {stats.lowStockProducts}
                             </Typography>
@@ -180,6 +227,24 @@ export default function DashboardPage() {
 
             {/* Management Cards */}
             <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                    <Card>
+                        <CardContent>
+                            <Typography variant="h6" gutterBottom>
+                                Quản lý Đơn hàng
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                Tạo và quản lý đơn hàng. Hiện có {stats.totalOrders} đơn hàng, trong đó {stats.pendingOrders} đơn đang chờ xử lý.
+                            </Typography>
+                            <Link href="/orders" style={{ textDecoration: "none" }}>
+                                <Button variant="contained" color="success" fullWidth>
+                                    Quản lý Đơn hàng
+                                </Button>
+                            </Link>
+                        </CardContent>
+                    </Card>
+                </Grid>
+
                 <Grid item xs={12} md={6}>
                     <Card>
                         <CardContent>
@@ -254,4 +319,4 @@ export default function DashboardPage() {
             </Grid>
         </Container>
     );
-}
+} 

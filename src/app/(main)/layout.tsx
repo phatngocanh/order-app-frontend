@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { auth } from "@/lib/auth";
-import { AppBar, Button, Toolbar, Typography } from "@mui/material";
+import { ordersApi } from "@/lib/orders";
+import { AppBar, Badge, Button, Toolbar, Typography } from "@mui/material";
 
 export default function MainLayout({
     children,
@@ -13,6 +14,7 @@ export default function MainLayout({
 }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [username, setUsername] = useState<string | null>(null);
+    const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
 
     useEffect(() => {
         // Check if user is authenticated
@@ -21,9 +23,32 @@ export default function MainLayout({
         setIsAuthenticated(authenticated);
         setUsername(currentUsername);
 
-        if (!authenticated) {
+        if (authenticated) {
+            // Load pending orders count
+            loadPendingOrdersCount();
+        } else {
             window.location.href = "/login";
         }
+    }, []);
+
+    const loadPendingOrdersCount = async () => {
+        try {
+            const orders = await ordersApi.getAll();
+            const pendingCount = orders.orders.filter(order => 
+                order.delivery_status !== "COMPLETED"
+            ).length;
+            setPendingOrdersCount(pendingCount);
+        } catch (err) {
+            console.error("Error loading pending orders count:", err);
+        }
+    };
+
+    // Expose refresh function globally for other components
+    useEffect(() => {
+        (window as any).refreshPendingOrdersCount = loadPendingOrdersCount;
+        return () => {
+            delete (window as any).refreshPendingOrdersCount;
+        };
     }, []);
 
     const handleLogout = () => {
@@ -83,6 +108,16 @@ export default function MainLayout({
                     >
                         Lịch sử Kho
                     </Button>
+                    <Badge badgeContent={pendingOrdersCount} color="warning" max={99}>
+                        <Button 
+                            color="inherit" 
+                            component={Link} 
+                            href="/orders"
+                            sx={{ mr: 1 }}
+                        >
+                            Đơn hàng
+                        </Button>
+                    </Badge>
                     
                     <Typography variant="body1" sx={{ ml: "auto", mr: 2 }}>
                         Chào mừng, {username || "Người dùng"}!

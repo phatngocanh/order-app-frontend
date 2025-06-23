@@ -65,29 +65,90 @@ export interface GetOneProductResponse {
     product: ProductResponse;
 }
 
-// Order types (example for order app)
+// Order types
 export interface Order {
-    id: string;
-    orderNumber: string;
-    customerName: string;
-    customerEmail: string;
-    items: OrderItem[];
-    total: number;
-    status: OrderStatus;
-    createdAt: string;
-    updatedAt: string;
+    id: number;
+    customer_id: number;
+    order_date: string;
+    delivery_status: string;
+    debt_status: string;
+    status_transitioned_at?: string;
+    order_items: OrderItem[];
 }
 
 export interface OrderItem {
-    id: string;
-    productId: string;
-    productName: string;
+    id: number;
+    order_id: number;
+    product_id: number;
+    number_of_boxes?: number;
+    spec?: number;
     quantity: number;
-    price: number;
-    total: number;
+    selling_price: number;
+    discount: number;
+    final_amount?: number;
 }
 
-export type OrderStatus = "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
+export interface CreateOrderRequest {
+    customer_id: number;
+    order_date: string;
+    delivery_status: string;
+    debt_status?: string;
+    status_transitioned_at?: string;
+    order_items: OrderItemRequest[];
+}
+
+export interface OrderItemRequest {
+    product_id: number;
+    number_of_boxes?: number;
+    spec?: number;
+    quantity: number;
+    selling_price: number;
+    discount?: number;
+    final_amount?: number;
+    version: string; // For optimistic locking
+}
+
+export interface UpdateOrderRequest {
+    id: number;
+    customer_id?: number;
+    order_date?: string;
+    delivery_status?: string;
+    debt_status?: string;
+    status_transitioned_at?: string;
+}
+
+export interface OrderResponse {
+    id: number;
+    customer_id: number;
+    order_date: string;
+    delivery_status: string;
+    debt_status: string;
+    status_transitioned_at?: string;
+    order_items: OrderItemResponse[];
+    customer: CustomerResponse;
+}
+
+export interface OrderItemResponse {
+    id: number;
+    order_id: number;
+    product_id: number;
+    product_name?: string;
+    number_of_boxes?: number;
+    spec?: number;
+    quantity: number;
+    selling_price: number;
+    discount: number;
+    final_amount?: number;
+    export_from: string;
+}
+
+export interface GetAllOrdersResponse {
+    orders: OrderResponse[];
+}
+
+export interface GetOneOrderResponse {
+    order: OrderResponse;
+}
 
 // Form types
 export interface FormField {

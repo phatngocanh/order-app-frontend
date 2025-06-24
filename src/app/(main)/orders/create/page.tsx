@@ -235,28 +235,32 @@ export default function CreateOrderPage() {
                 item.version = inventory ? inventory.version : '';
             }
 
-            // Calculate quantity if both number_of_boxes and spec are provided
+            // Handle spec, boxes, and quantity logic
             if (field === 'number_of_boxes' || field === 'spec') {
+                // If both number_of_boxes and spec are provided, calculate quantity
                 if (item.number_of_boxes && item.spec) {
                     item.quantity = item.number_of_boxes * item.spec;
-                } else if (field === 'number_of_boxes' && !item.spec) {
-                    // If spec is not provided, use product's spec
+                } else if (field === 'number_of_boxes' && item.number_of_boxes && !item.spec) {
+                    // If only number_of_boxes is provided, auto-fill with product's default spec
                     const product = getProductById(item.product_id);
-                    if (product && item.number_of_boxes) {
-                        item.quantity = item.number_of_boxes * product.spec;
+                    if (product && product.spec) {
                         item.spec = product.spec;
+                        item.quantity = item.number_of_boxes * product.spec;
                     }
+                } else if (field === 'spec' && item.spec && !item.number_of_boxes) {
+                    // If only spec is provided, clear quantity (user needs to enter boxes or quantity manually)
+                    item.quantity = 0;
+                } else if ((field === 'number_of_boxes' && !item.number_of_boxes) || 
+                          (field === 'spec' && !item.spec)) {
+                    // If either field is cleared, clear quantity
+                    item.quantity = 0;
                 }
             }
 
-            // If quantity is explicitly set (not calculated from number_of_boxes × spec)
+            // If quantity is explicitly set, clear both number_of_boxes and spec
             if (field === 'quantity') {
-                // Check if quantity was manually entered (not calculated)
-                const calculatedQuantity = item.number_of_boxes && item.spec ? item.number_of_boxes * item.spec : null;
-                if (calculatedQuantity !== item.quantity) {
-                    // Quantity was explicitly set, so spec should be undefined
-                    item.spec = undefined;
-                }
+                item.number_of_boxes = undefined;
+                item.spec = undefined;
             }
 
             // Calculate final_amount whenever quantity, selling_price, or discount changes
@@ -288,19 +292,51 @@ export default function CreateOrderPage() {
     };
 
     const isSpecDisabled = (item: OrderItemFormData) => {
-        // Spec is disabled if quantity was explicitly set (not calculated from number_of_boxes × spec)
-        const calculatedQuantity = item.number_of_boxes && item.spec ? item.number_of_boxes * item.spec : null;
-        return calculatedQuantity !== item.quantity;
+        // Spec is disabled if quantity was manually entered (not calculated from number_of_boxes × spec)
+        return !!(item.quantity > 0 && !item.number_of_boxes && !item.spec);
     };
 
-    const isQuantityCalculated = (item: OrderItemFormData) => {
+    const wasQuantityCalculated = (item: OrderItemFormData) => {
+        // Check if quantity was originally calculated from boxes × spec
         return !!(item.number_of_boxes && item.spec);
+    };
+
+    const isBoxesDisabled = (item: OrderItemFormData) => {
+        // Boxes is disabled if quantity was manually entered (not calculated from number_of_boxes × spec)
+        return !!(item.quantity > 0 && !item.number_of_boxes && !item.spec);
     };
 
     const calculateOrderTotal = () => {
         return formData.order_items.reduce((total, item) => {
             return total + (item.final_amount || 0);
         }, 0);
+    };
+
+    const calculateTotalProfitLoss = () => {
+        return formData.order_items.reduce((total, item) => {
+            const product = getProductById(item.product_id);
+            if (product && item.quantity > 0 && item.selling_price > 0) {
+                const originalCost = item.quantity * product.original_price;
+                const sellingRevenue = item.quantity * item.selling_price;
+                return total + (sellingRevenue - originalCost);
+            }
+            return total;
+        }, 0);
+    };
+
+    const calculateTotalProfitLossPercentage = () => {
+        const totalOriginalCost = formData.order_items.reduce((total, item) => {
+            const product = getProductById(item.product_id);
+            if (product && item.quantity > 0) {
+                return total + (item.quantity * product.original_price);
+            }
+            return total;
+        }, 0);
+
+        if (totalOriginalCost > 0) {
+            return (calculateTotalProfitLoss() / totalOriginalCost) * 100;
+        }
+        return 0;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -505,6 +541,12 @@ export default function CreateOrderPage() {
                                     const originalPrice = item.quantity * item.selling_price;
                                     const discountAmount = (originalPrice * (item.discount || 0)) / 100;
                                     
+                                    // Calculate profit/loss
+                                    const originalCost = product ? item.quantity * product.original_price : 0;
+                                    const sellingRevenue = item.quantity * item.selling_price;
+                                    const profitLoss = sellingRevenue - originalCost;
+                                    const profitLossPercentage = originalCost > 0 ? (profitLoss / originalCost) * 100 : 0;
+                                    
                                     return (
                                         <Paper key={index} sx={{ p: 2, mb: 2 }}>
                                             <Grid container spacing={2} alignItems="center">
@@ -526,58 +568,85 @@ export default function CreateOrderPage() {
                                                     </FormControl>
                                                 </Grid>
                                                 <Grid item xs={12} md={1.5}>
-                                                    <TextField
-                                                        fullWidth
-                                                        type="text"
-                                                        label="Số thùng"
-                                                        value={item.number_of_boxes !== undefined && item.number_of_boxes !== null && !isNaN(item.number_of_boxes) ? item.number_of_boxes.toLocaleString("vi-VN") : ""}
-                                                        onChange={(e) => {
-                                                            const raw = e.target.value.replace(/\D/g, "");
-                                                            updateOrderItem(index, "number_of_boxes", raw ? parseInt(raw) : undefined);
-                                                        }}
-                                                        placeholder="Tùy chọn"
-                                                    />
+                                                    <Tooltip
+                                                        title={isBoxesDisabled(item) ? "Số thùng bị khóa vì số lượng đã được nhập trực tiếp" : "Nhập số thùng để tính số lượng tự động"}
+                                                        arrow
+                                                        placement="top"
+                                                    >
+                                                        <TextField
+                                                            fullWidth
+                                                            type="text"
+                                                            label="Số thùng"
+                                                            value={item.number_of_boxes !== undefined && item.number_of_boxes !== null && !isNaN(item.number_of_boxes) ? item.number_of_boxes.toLocaleString("vi-VN") : ""}
+                                                            onChange={(e) => {
+                                                                const raw = e.target.value.replace(/\D/g, "");
+                                                                updateOrderItem(index, "number_of_boxes", raw ? parseInt(raw) : undefined);
+                                                            }}
+                                                            placeholder="Tùy chọn"
+                                                            disabled={isBoxesDisabled(item)}
+                                                        />
+                                                    </Tooltip>
                                                 </Grid>
                                                 <Grid item xs={12} md={1.5}>
-                                                    <TextField
-                                                        fullWidth
-                                                        type="text"
-                                                        label="Quy cách"
-                                                        value={item.spec !== undefined && item.spec !== null && !isNaN(item.spec) ? item.spec.toLocaleString("vi-VN") : ""}
-                                                        onChange={(e) => {
-                                                            const raw = e.target.value.replace(/\D/g, "");
-                                                            updateOrderItem(index, "spec", raw ? parseInt(raw) : undefined);
-                                                        }}
-                                                        placeholder="Tùy chọn"
-                                                        disabled={isSpecDisabled(item)}
-                                                    />
+                                                    <Tooltip
+                                                        title={isSpecDisabled(item) ? "Quy cách bị khóa vì số lượng đã được nhập trực tiếp" : "Nhập quy cách mỗi thùng để tính số lượng tự động"}
+                                                        arrow
+                                                        placement="top"
+                                                    >
+                                                        <TextField
+                                                            fullWidth
+                                                            type="text"
+                                                            label="Quy cách"
+                                                            value={item.spec !== undefined && item.spec !== null && !isNaN(item.spec) ? item.spec.toLocaleString("vi-VN") : ""}
+                                                            onChange={(e) => {
+                                                                const raw = e.target.value.replace(/\D/g, "");
+                                                                updateOrderItem(index, "spec", raw ? parseInt(raw) : undefined);
+                                                            }}
+                                                            placeholder="Tùy chọn"
+                                                            disabled={isSpecDisabled(item)}
+                                                        />
+                                                    </Tooltip>
                                                 </Grid>
                                                 <Grid item xs={12} md={1.5}>
-                                                    <TextField
-                                                        fullWidth
-                                                        type="text"
-                                                        label="Số lượng"
-                                                        value={item.quantity !== undefined && item.quantity !== null && !isNaN(item.quantity) ? item.quantity.toLocaleString("vi-VN") : ""}
-                                                        onChange={(e) => {
-                                                            const raw = e.target.value.replace(/\D/g, "");
-                                                            updateOrderItem(index, "quantity", raw ? parseInt(raw) : 0);
-                                                        }}
-                                                        InputProps={{
-                                                            readOnly: isQuantityCalculated(item),
-                                                        }}
-                                                    />
+                                                    <Tooltip
+                                                        title="Nhập số lượng trực tiếp hoặc sử dụng số thùng × quy cách"
+                                                        arrow
+                                                        placement="top"
+                                                    >
+                                                        <TextField
+                                                            fullWidth
+                                                            type="text"
+                                                            label="Số lượng"
+                                                            value={item.quantity !== undefined && item.quantity !== null && !isNaN(item.quantity) ? item.quantity.toLocaleString("vi-VN") : ""}
+                                                            onChange={(e) => {
+                                                                const raw = e.target.value.replace(/\D/g, "");
+                                                                updateOrderItem(index, "quantity", raw ? parseInt(raw) : 0);
+                                                            }}
+                                                            placeholder="Nhập số lượng"
+                                                        />
+                                                    </Tooltip>
                                                 </Grid>
                                                 <Grid item xs={12} md={1.5}>
-                                                    <TextField
-                                                        fullWidth
-                                                        type="text"
-                                                        label="Giá bán"
-                                                        value={item.selling_price !== undefined && item.selling_price !== null && !isNaN(item.selling_price) ? item.selling_price.toLocaleString("vi-VN") : ""}
-                                                        onChange={(e) => {
-                                                            const raw = e.target.value.replace(/\D/g, "");
-                                                            updateOrderItem(index, "selling_price", raw ? parseInt(raw) : 0);
-                                                        }}
-                                                    />
+                                                    <Tooltip
+                                                        title={
+                                                            product && item.selling_price > 0 && product.original_price > 0
+                                                                ? `Giá gốc: ${product.original_price.toLocaleString('vi-VN')} VND\nChênh lệch: ${(item.selling_price - product.original_price).toLocaleString('vi-VN')} VND\nBiên lợi nhuận: ${(((item.selling_price - product.original_price) / product.original_price) * 100).toFixed(1)}%`
+                                                                : ""
+                                                        }
+                                                        arrow
+                                                        placement="top"
+                                                    >
+                                                        <TextField
+                                                            fullWidth
+                                                            type="text"
+                                                            label="Giá bán"
+                                                            value={item.selling_price !== undefined && item.selling_price !== null && !isNaN(item.selling_price) ? item.selling_price.toLocaleString("vi-VN") : ""}
+                                                            onChange={(e) => {
+                                                                const raw = e.target.value.replace(/\D/g, "");
+                                                                updateOrderItem(index, "selling_price", raw ? parseInt(raw) : 0);
+                                                            }}
+                                                        />
+                                                    </Tooltip>
                                                 </Grid>
                                                 <Grid item xs={12} md={1.5}>
                                                     <TextField
@@ -635,6 +704,11 @@ export default function CreateOrderPage() {
                                                 {item.discount > 0 && (
                                                     <span style={{ color: '#d97706' }}>Đã giảm: {discountAmount.toLocaleString('vi-VN')} VND</span>
                                                 )}
+                                                {product && item.quantity > 0 && item.selling_price > 0 && (
+                                                    <span style={{ color: profitLoss >= 0 ? '#059669' : '#dc2626' }}>
+                                                        {product.original_price.toLocaleString('vi-VN')}đ (giá gốc) × {item.quantity} đơn vị = {originalCost.toLocaleString('vi-VN')}đ → {profitLoss >= 0 ? 'Lãi' : 'Lỗ'} {Math.abs(profitLoss).toLocaleString('vi-VN')}đ ({profitLossPercentage >= 0 ? '+' : ''}{profitLossPercentage.toFixed(1)}%)
+                                                    </span>
+                                                )}
                                             </Box>
                                             {inventory && (
                                                 <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
@@ -659,9 +733,29 @@ export default function CreateOrderPage() {
                                 {/* Order Total */}
                                 {formData.order_items.length > 0 && (
                                     <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                                        <Typography variant="h6" align="right">
-                                            Tổng tiền đơn hàng: {calculateOrderTotal().toLocaleString("vi-VN")} VND
-                                        </Typography>
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end' }}>
+                                            <Typography variant="h6">
+                                                Tổng tiền đơn hàng: {calculateOrderTotal().toLocaleString("vi-VN")} VND
+                                            </Typography>
+                                            {(() => {
+                                                const totalProfitLoss = calculateTotalProfitLoss();
+                                                const totalProfitLossPercentage = calculateTotalProfitLossPercentage();
+                                                if (totalProfitLoss !== 0) {
+                                                    return (
+                                                        <Typography 
+                                                            variant="body1" 
+                                                            sx={{ 
+                                                                color: totalProfitLoss >= 0 ? '#059669' : '#dc2626',
+                                                                fontWeight: 'bold'
+                                                            }}
+                                                        >
+                                                            Tổng {totalProfitLoss >= 0 ? 'lãi' : 'lỗ'}: {Math.abs(totalProfitLoss).toLocaleString("vi-VN")} VND ({totalProfitLossPercentage >= 0 ? '+' : ''}{totalProfitLossPercentage.toFixed(1)}%)
+                                                        </Typography>
+                                                    );
+                                                }
+                                                return null;
+                                            })()}
+                                        </Box>
                                     </Box>
                                 )}
                             </CardContent>

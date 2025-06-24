@@ -296,11 +296,6 @@ export default function CreateOrderPage() {
         return !!(item.quantity > 0 && !item.number_of_boxes && !item.spec);
     };
 
-    const wasQuantityCalculated = (item: OrderItemFormData) => {
-        // Check if quantity was originally calculated from boxes × spec
-        return !!(item.number_of_boxes && item.spec);
-    };
-
     const isBoxesDisabled = (item: OrderItemFormData) => {
         // Boxes is disabled if quantity was manually entered (not calculated from number_of_boxes × spec)
         return !!(item.quantity > 0 && !item.number_of_boxes && !item.spec);
@@ -318,7 +313,10 @@ export default function CreateOrderPage() {
             if (product && item.quantity > 0 && item.selling_price > 0) {
                 const originalCost = item.quantity * product.original_price;
                 const sellingRevenue = item.quantity * item.selling_price;
-                return total + (sellingRevenue - originalCost);
+                const discountAmount = (sellingRevenue * item.discount) / 100;
+                const finalRevenue = sellingRevenue - discountAmount;
+                const profitLoss = finalRevenue - originalCost;
+                return total + profitLoss;
             }
             return total;
         }, 0);
@@ -537,14 +535,14 @@ export default function CreateOrderPage() {
                                     const inventory = getInventoryForProduct(item.product_id);
                                     const product = getProductById(item.product_id);
                                     const warning = getInventoryWarning(item.product_id, item.quantity);
-                                    const defaultSpec = product ? product.spec : undefined;
                                     const originalPrice = item.quantity * item.selling_price;
                                     const discountAmount = (originalPrice * (item.discount || 0)) / 100;
                                     
                                     // Calculate profit/loss
                                     const originalCost = product ? item.quantity * product.original_price : 0;
                                     const sellingRevenue = item.quantity * item.selling_price;
-                                    const profitLoss = sellingRevenue - originalCost;
+                                    const finalRevenue = sellingRevenue - discountAmount;
+                                    const profitLoss = finalRevenue - originalCost;
                                     const profitLossPercentage = originalCost > 0 ? (profitLoss / originalCost) * 100 : 0;
                                     
                                     return (
@@ -696,20 +694,14 @@ export default function CreateOrderPage() {
                                                 </Grid>
                                             </Grid>
                                             {/* Info bar below the row */}
-                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4, mt: 1, fontSize: 13, color: '#888', alignItems: 'center' }}>
-                                                {defaultSpec !== undefined && (
-                                                    <span>Quy cách mặc định: {defaultSpec.toLocaleString('vi-VN')}</span>
-                                                )}
-                                                <span>Giá gốc: {originalPrice.toLocaleString('vi-VN')} VND</span>
-                                                {item.discount > 0 && (
-                                                    <span style={{ color: '#d97706' }}>Đã giảm: {discountAmount.toLocaleString('vi-VN')} VND</span>
-                                                )}
-                                                {product && item.quantity > 0 && item.selling_price > 0 && (
-                                                    <span style={{ color: profitLoss >= 0 ? '#059669' : '#dc2626' }}>
-                                                        {product.original_price.toLocaleString('vi-VN')}đ (giá gốc) × {item.quantity} đơn vị = {originalCost.toLocaleString('vi-VN')}đ → {profitLoss >= 0 ? 'Lãi' : 'Lỗ'} {Math.abs(profitLoss).toLocaleString('vi-VN')}đ ({profitLossPercentage >= 0 ? '+' : ''}{profitLossPercentage.toFixed(1)}%)
-                                                    </span>
-                                                )}
-                                            </Box>
+                                            {product && (
+                                              <Box sx={{ mt: 1, fontSize: 15, color: profitLoss >= 0 ? '#059669' : '#dc2626', fontWeight: 600 }}>
+                                                {`Giá vốn ${product.original_price.toLocaleString('vi-VN')}đ × ${item.quantity} = ${originalCost.toLocaleString('vi-VN')}, bán ${item.selling_price.toLocaleString('vi-VN')}đ × ${item.quantity} = ${(item.selling_price * item.quantity).toLocaleString('vi-VN')}` +
+                                                  (item.discount > 0 ? `, chiết khấu ${item.discount}% (${discountAmount.toLocaleString('vi-VN')}đ) = còn ${(item.selling_price * item.quantity - discountAmount).toLocaleString('vi-VN')}` : '') +
+                                                  ` → ${profitLoss >= 0 ? 'Lãi' : 'Lỗ'} ${Math.abs(profitLoss).toLocaleString('vi-VN')}đ (${profitLossPercentage >= 0 ? '+' : ''}${profitLossPercentage.toFixed(1)}%)`
+                                                }
+                                              </Box>
+                                            )}
                                             {inventory && (
                                                 <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
                                                     Tồn kho: {inventory.quantity} đơn vị

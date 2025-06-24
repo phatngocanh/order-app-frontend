@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -8,6 +9,7 @@ import { InventoryHistoryResponse, ProductResponse } from "@/types";
 import {
     Alert,
     Box,
+    Button,
     Card,
     CardContent,
     FormControl,
@@ -126,6 +128,14 @@ export default function InventoryHistoryPage() {
                 <Typography variant="h4" component="h1">
                     Lịch sử Kho
                 </Typography>
+                <Button
+                    component={Link}
+                    href="/products"
+                    variant="outlined"
+                    size="small"
+                >
+                    Quay lại Sản phẩm
+                </Button>
             </Box>
 
             {error && (

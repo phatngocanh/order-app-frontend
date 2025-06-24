@@ -187,11 +187,7 @@ export default function OrdersPage() {
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        <Chip
-                                            label={order.debt_status}
-                                            color={getStatusColor(order.debt_status) as any}
-                                            size="small"
-                                        />
+                                        {order.debt_status || '-'}
                                     </TableCell>
                                     <TableCell>{order.product_count ?? '-'}</TableCell>
                                     <TableCell>

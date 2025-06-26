@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import LoadingOverlay from "@/components/LoadingOverlay";
 import { auth } from "@/lib/auth";
 import { ordersApi } from "@/lib/orders";
 import { AppBar, Badge, Button, Toolbar, Typography } from "@mui/material";
@@ -15,6 +16,7 @@ export default function MainLayout({
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [username, setUsername] = useState<string | null>(null);
     const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         // Check if user is authenticated
@@ -33,6 +35,7 @@ export default function MainLayout({
 
     const loadPendingOrdersCount = async () => {
         try {
+            setLoading(true);
             const orders = await ordersApi.getAll();
             const pendingCount = orders.orders.filter(order => 
                 order.delivery_status !== "COMPLETED"
@@ -40,6 +43,8 @@ export default function MainLayout({
             setPendingOrdersCount(pendingCount);
         } catch (err) {
             console.error("Error loading pending orders count:", err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -129,6 +134,11 @@ export default function MainLayout({
             </AppBar>
 
             {children}
+            
+            <LoadingOverlay 
+                open={loading} 
+                message="Đang tải dữ liệu..." 
+            />
         </>
     );
 } 

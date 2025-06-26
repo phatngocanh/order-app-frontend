@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import LoadingButton from "@/components/LoadingButton";
+import SkeletonLoader from "@/components/SkeletonLoader";
 import { productApi } from "@/lib/products";
 import { InventoryResponse, ProductResponse, UpdateProductRequest } from "@/types";
 import { Add as AddIcon, Edit as EditIcon, Inventory as InventoryIcon } from "@mui/icons-material";
@@ -31,6 +33,7 @@ export default function ProductsPage() {
     const [products, setProducts] = useState<ProductResponse[]>([]);
     const [inventories, setInventories] = useState<{ [key: number]: InventoryResponse }>({});
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [editingProduct, setEditingProduct] = useState<ProductResponse | null>(null);
@@ -90,6 +93,7 @@ export default function ProductsPage() {
     // Handle form submission
     const handleSubmit = async () => {
         try {
+            setSubmitting(true);
             setError(null);
 
             const dataToSubmit = {
@@ -128,6 +132,8 @@ export default function ProductsPage() {
             }
             
             setError(errorMessage);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -161,7 +167,23 @@ export default function ProductsPage() {
     if (loading) {
         return (
             <Box sx={{ p: 3 }}>
-                <Typography>Đang tải sản phẩm...</Typography>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                    <Typography variant="h4" component="h1">
+                        Quản lý Sản phẩm
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        disabled
+                    >
+                        Thêm Sản phẩm
+                    </Button>
+                </Box>
+                <Card>
+                    <CardContent>
+                        <SkeletonLoader type="table" rows={8} columns={6} />
+                    </CardContent>
+                </Card>
             </Box>
         );
     }
@@ -247,79 +269,54 @@ export default function ProductsPage() {
             {/* Add/Edit Dialog */}
             <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
                 <DialogTitle>
-                    {editingProduct ? "Chỉnh sửa Sản phẩm" : "Thêm Sản phẩm Mới"}
+                    {editingProduct ? "Chỉnh sửa Sản phẩm" : "Thêm Sản phẩm mới"}
                 </DialogTitle>
                 <DialogContent>
-                    <Box sx={{ pt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
+                    <Box sx={{ pt: 2 }}>
                         <TextField
+                            fullWidth
                             label="Tên sản phẩm"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            fullWidth
+                            margin="normal"
                             required
+                            disabled={submitting}
                         />
                         <TextField
+                            fullWidth
                             label="Quy cách"
                             type="number"
                             value={formData.spec}
-                            onFocus={() => {
-                                if (formData.spec === 0) {
-                                    setFormData({ ...formData, spec: "" });
-                                }
-                            }}
-                            onBlur={() => {
-                                if (formData.spec === "") {
-                                    setFormData({ ...formData, spec: 0 });
-                                }
-                            }}
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                if (value === "") {
-                                    setFormData({ ...formData, spec: "" });
-                                } else {
-                                    const num = parseInt(value, 10);
-                                    if (!isNaN(num)) {
-                                        setFormData({ ...formData, spec: num });
-                                    }
-                                }
-                            }}
-                            fullWidth
+                            onChange={(e) => setFormData({ ...formData, spec: e.target.value === "" ? "" : Number(e.target.value) })}
+                            margin="normal"
+                            required
+                            disabled={submitting}
                         />
                         <TextField
+                            fullWidth
                             label="Giá gốc (VND)"
                             type="number"
                             value={formData.original_price}
-                            onFocus={() => {
-                                if (formData.original_price === 0) {
-                                    setFormData({ ...formData, original_price: "" });
-                                }
-                            }}
-                            onBlur={() => {
-                                if (formData.original_price === "") {
-                                    setFormData({ ...formData, original_price: 0 });
-                                }
-                            }}
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                if (value === "") {
-                                    setFormData({ ...formData, original_price: "" });
-                                } else {
-                                    const num = parseInt(value, 10);
-                                    if (!isNaN(num)) {
-                                        setFormData({ ...formData, original_price: num });
-                                    }
-                                }
-                            }}
-                            fullWidth
+                            onChange={(e) => setFormData({ ...formData, original_price: e.target.value === "" ? "" : Number(e.target.value) })}
+                            margin="normal"
                             required
+                            disabled={submitting}
                         />
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseDialog}>Hủy</Button>
-                    <Button onClick={handleSubmit} variant="contained">
-                        {editingProduct ? "Cập nhật" : "Thêm"}
+                    <Button onClick={handleCloseDialog} disabled={submitting}>
+                        Hủy
                     </Button>
+                    <LoadingButton
+                        onClick={handleSubmit}
+                        variant="contained"
+                        loading={submitting}
+                        loadingText="Đang lưu..."
+                        disabled={!formData.name || formData.spec === "" || formData.original_price === ""}
+                    >
+                        {editingProduct ? "Cập nhật" : "Thêm"}
+                    </LoadingButton>
                 </DialogActions>
             </Dialog>
         </Box>

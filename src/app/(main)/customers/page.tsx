@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import LoadingButton from "@/components/LoadingButton";
+import SkeletonLoader from "@/components/SkeletonLoader";
 import { customerApi } from "@/lib/customers";
 import { CustomerResponse, UpdateCustomerRequest } from "@/types";
 import { Add as AddIcon, Edit as EditIcon } from "@mui/icons-material";
@@ -30,6 +32,7 @@ import {
 export default function CustomersPage() {
     const [customers, setCustomers] = useState<CustomerResponse[]>([]);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState<CustomerResponse | null>(null);
@@ -76,6 +79,7 @@ export default function CustomersPage() {
     // Handle form submission
     const handleSubmit = async () => {
         try {
+            setSubmitting(true);
             setError(null);
 
             const dataToSubmit = {
@@ -115,6 +119,8 @@ export default function CustomersPage() {
             }
             
             setError(errorMessage);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -140,7 +146,23 @@ export default function CustomersPage() {
     if (loading) {
         return (
             <Box sx={{ p: 3 }}>
-                <Typography>Đang tải khách hàng...</Typography>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                    <Typography variant="h4" component="h1">
+                        Quản lý Khách hàng
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        disabled
+                    >
+                        Thêm Khách hàng
+                    </Button>
+                </Box>
+                <Card>
+                    <CardContent>
+                        <SkeletonLoader type="table" rows={8} columns={5} />
+                    </CardContent>
+                </Card>
             </Box>
         );
     }
@@ -227,6 +249,7 @@ export default function CustomersPage() {
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             margin="normal"
                             required={!editingCustomer}
+                            disabled={submitting}
                         />
                         <TextField
                             fullWidth
@@ -235,6 +258,7 @@ export default function CustomersPage() {
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                             margin="normal"
                             required={!editingCustomer}
+                            disabled={submitting}
                         />
                         <TextField
                             fullWidth
@@ -245,14 +269,23 @@ export default function CustomersPage() {
                             multiline
                             rows={3}
                             required={!editingCustomer}
+                            disabled={submitting}
                         />
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseDialog}>Hủy</Button>
-                    <Button onClick={handleSubmit} variant="contained">
-                        {editingCustomer ? "Cập nhật" : "Thêm"}
+                    <Button onClick={handleCloseDialog} disabled={submitting}>
+                        Hủy
                     </Button>
+                    <LoadingButton
+                        onClick={handleSubmit}
+                        variant="contained"
+                        loading={submitting}
+                        loadingText="Đang lưu..."
+                        disabled={!formData.name || !formData.phone}
+                    >
+                        {editingCustomer ? "Cập nhật" : "Thêm"}
+                    </LoadingButton>
                 </DialogActions>
             </Dialog>
         </Box>

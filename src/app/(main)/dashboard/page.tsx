@@ -1,23 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { customerApi } from "@/lib/customers";
 import { ordersApi } from "@/lib/orders";
 import { productApi } from "@/lib/products";
-import { 
-    Alert,
-    Box,
-    Button, 
-    Card, 
-    CardContent, 
-    CircularProgress,
-    Container, 
-    Grid, 
-    Tooltip,
-    Typography,
-} from "@mui/material";
 import { 
     Info as InfoIcon,
     Inventory as InventoryIcon,
@@ -26,6 +15,17 @@ import {
     ShoppingCart as ShoppingCartIcon,
     TrendingUp as TrendingUpIcon,
 } from "@mui/icons-material";
+import { 
+    Alert,
+    Box,
+    Button, 
+    Card, 
+    CardContent, 
+    Container, 
+    Grid, 
+    Tooltip,
+    Typography,
+} from "@mui/material";
 
 interface DashboardStats {
     totalProducts: number;
@@ -103,11 +103,11 @@ export default function DashboardPage() {
 
     if (loading) {
         return (
-            <Container maxWidth="lg" sx={{ mt: 4, textAlign: "center" }}>
-                <CircularProgress />
-                <Typography variant="body1" sx={{ mt: 2 }}>
-                    Đang tải dữ liệu...
-                </Typography>
+            <Container maxWidth="lg" sx={{ mt: 4 }}>
+                <LoadingSpinner 
+                    message="Đang tải dữ liệu bảng điều khiển..." 
+                    fullHeight={true}
+                />
             </Container>
         );
     }

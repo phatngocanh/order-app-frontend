@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import LoadingButton from "@/components/LoadingButton";
+import SkeletonLoader from "@/components/SkeletonLoader";
 import { ordersApi } from "@/lib/orders";
 import { OrderResponse } from "@/types";
 import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
@@ -118,7 +120,23 @@ export default function OrdersPage() {
     if (loading) {
         return (
             <Box sx={{ p: 3 }}>
-                <Typography>Đang tải...</Typography>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                    <Typography variant="h4" component="h1">
+                        Quản lý Đơn hàng
+                    </Typography>
+                    <Button
+                        component={Link}
+                        href="/orders/create"
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        disabled
+                    >
+                        Tạo đơn hàng mới
+                    </Button>
+                </Box>
+                <Paper>
+                    <SkeletonLoader type="table" rows={8} columns={8} />
+                </Paper>
             </Box>
         );
     }
@@ -225,32 +243,31 @@ export default function OrdersPage() {
             <Dialog
                 open={deleteDialogOpen}
                 onClose={handleDeleteCancel}
-                aria-labelledby="delete-dialog-title"
-                aria-describedby="delete-dialog-description"
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
             >
-                <DialogTitle id="delete-dialog-title">
+                <DialogTitle id="alert-dialog-title">
                     Xác nhận xóa đơn hàng
                 </DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="delete-dialog-description">
-                        Bạn có chắc chắn muốn xóa đơn hàng số {orderToDelete?.id} của khách hàng {orderToDelete?.customer.name}?
-                        <br />
-                        <br />
-                        <strong>Lưu ý:</strong> Nếu đơn hàng này có sản phẩm được xuất từ kho, chúng sẽ được hoàn lại vào kho.
+                    <DialogContentText id="alert-dialog-description">
+                        Bạn có chắc chắn muốn xóa đơn hàng #{orderToDelete?.id}? 
+                        Hành động này không thể hoàn tác.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleDeleteCancel} disabled={deleting}>
                         Hủy
                     </Button>
-                    <Button 
-                        onClick={handleDeleteConfirm} 
-                        color="error" 
+                    <LoadingButton
+                        onClick={handleDeleteConfirm}
+                        color="error"
                         variant="contained"
-                        disabled={deleting}
+                        loading={deleting}
+                        loadingText="Đang xóa..."
                     >
-                        {deleting ? "Đang xóa..." : "Xóa"}
-                    </Button>
+                        Xóa
+                    </LoadingButton>
                 </DialogActions>
             </Dialog>
         </Box>

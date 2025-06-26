@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import SkeletonLoader from "@/components/SkeletonLoader";
 import { productApi } from "@/lib/products";
 import { InventoryHistoryResponse, ProductResponse } from "@/types";
 import {
@@ -117,7 +118,33 @@ export default function InventoryHistoryPage() {
     if (loading) {
         return (
             <Box sx={{ p: 3 }}>
-                <Typography>Đang tải dữ liệu...</Typography>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                    <Typography variant="h4" component="h1">
+                        Lịch sử Kho
+                    </Typography>
+                    <Button
+                        component={Link}
+                        href="/products"
+                        variant="outlined"
+                        size="small"
+                        disabled
+                    >
+                        Quay lại Sản phẩm
+                    </Button>
+                </Box>
+                <Box sx={{ mb: 3 }}>
+                    <FormControl fullWidth disabled>
+                        <InputLabel>Sản phẩm</InputLabel>
+                        <Select value="" label="Sản phẩm">
+                            <MenuItem>Đang tải...</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Box>
+                <Card>
+                    <CardContent>
+                        <SkeletonLoader type="table" rows={8} columns={6} />
+                    </CardContent>
+                </Card>
             </Box>
         );
     }

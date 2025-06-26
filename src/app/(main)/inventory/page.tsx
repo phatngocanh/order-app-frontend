@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import LoadingButton from "@/components/LoadingButton";
+import SkeletonLoader from "@/components/SkeletonLoader";
 import { extractErrorMessage } from "@/lib/error-utils";
 import { productApi } from "@/lib/products";
 import { InventoryResponse, ProductResponse, UpdateInventoryQuantityRequest } from "@/types";
@@ -32,6 +34,7 @@ export default function InventoryPage() {
     const [products, setProducts] = useState<ProductResponse[]>([]);
     const [inventories, setInventories] = useState<{ [key: number]: InventoryResponse }>({});
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<ProductResponse | null>(null);
@@ -96,6 +99,7 @@ export default function InventoryPage() {
         if (!selectedProduct) return;
         
         try {
+            setSubmitting(true);
             setError(null);
 
             const dataToSubmit: UpdateInventoryQuantityRequest = {
@@ -114,6 +118,8 @@ export default function InventoryPage() {
         } catch (err: any) {
             console.error("Error updating inventory:", err);
             setError(extractErrorMessage(err, "Không thể cập nhật số lượng kho. Vui lòng thử lại."));
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -140,7 +146,16 @@ export default function InventoryPage() {
     if (loading) {
         return (
             <Box sx={{ p: 3 }}>
-                <Typography>Đang tải dữ liệu kho...</Typography>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                    <Typography variant="h4" component="h1">
+                        Quản lý Kho
+                    </Typography>
+                </Box>
+                <Card>
+                    <CardContent>
+                        <SkeletonLoader type="table" rows={8} columns={5} />
+                    </CardContent>
+                </Card>
             </Box>
         );
     }
@@ -207,43 +222,46 @@ export default function InventoryPage() {
             {/* Update Inventory Dialog */}
             <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
                 <DialogTitle>
-                    Cập nhật Số lượng Kho - {selectedProduct?.name}
+                    Cập nhật số lượng kho - {selectedProduct?.name}
                 </DialogTitle>
                 <DialogContent>
-                    <Box sx={{ pt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
+                    <Box sx={{ pt: 2 }}>
                         <TextField
-                            label="Số lượng"
+                            fullWidth
+                            label="Số lượng thay đổi"
                             type="number"
                             value={formData.quantity}
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                if (value === "") {
-                                    setFormData({ ...formData, quantity: "" });
-                                } else {
-                                    const num = parseInt(value, 10);
-                                    if (!isNaN(num)) {
-                                        setFormData({ ...formData, quantity: num });
-                                    }
-                                }
-                            }}
-                            fullWidth
+                            onChange={(e) => setFormData({ ...formData, quantity: e.target.value === "" ? "" : Number(e.target.value) })}
+                            margin="normal"
                             required
+                            disabled={submitting}
+                            helperText="Nhập số dương để tăng, số âm để giảm"
                         />
                         <TextField
-                            label="Ghi chú (tùy chọn)"
+                            fullWidth
+                            label="Ghi chú"
                             value={formData.note}
                             onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                            fullWidth
+                            margin="normal"
                             multiline
                             rows={3}
+                            disabled={submitting}
                         />
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseDialog}>Hủy</Button>
-                    <Button onClick={handleSubmit} variant="contained">
-                        Cập nhật
+                    <Button onClick={handleCloseDialog} disabled={submitting}>
+                        Hủy
                     </Button>
+                    <LoadingButton
+                        onClick={handleSubmit}
+                        variant="contained"
+                        loading={submitting}
+                        loadingText="Đang cập nhật..."
+                        disabled={formData.quantity === ""}
+                    >
+                        Cập nhật
+                    </LoadingButton>
                 </DialogActions>
             </Dialog>
         </Box>

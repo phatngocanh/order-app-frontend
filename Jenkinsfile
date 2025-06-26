@@ -24,7 +24,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t order-app-fe:${env.DOCKER_TAG} ."
+                    sh "docker build --build-arg NEXT_PUBLIC_API_URL=${env.NEXT_PUBLIC_API_URL} -t order-app-fe:${env.DOCKER_TAG} ."
                 }
             }
         }
@@ -37,7 +37,6 @@ pipeline {
                             --restart unless-stopped \\
                             --name ${env.CONTAINER_NAME} \\
                             -p 3000:3000 \\
-                            -e NEXT_PUBLIC_API_URL="${env.NEXT_PUBLIC_API_URL}" \\
                             order-app-fe:${env.DOCKER_TAG}
                     """
                 }

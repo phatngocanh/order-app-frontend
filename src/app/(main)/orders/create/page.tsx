@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback,useEffect, useState } from "react";
 
 import { customerApi } from "@/lib/customers";
 import { ordersApi } from "@/lib/orders";
@@ -97,18 +97,6 @@ export default function CreateOrderPage() {
         setLastRefreshTime(new Date());
     }, []);
 
-    // Load inventories when products change
-    useEffect(() => {
-        if (products.length > 0) {
-            loadInventories();
-        }
-    }, [products]);
-
-    // Save form data to localStorage whenever it changes
-    useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-    }, [formData]);
-
     const loadCustomers = async () => {
         try {
             const response = await customerApi.getAll();
@@ -127,7 +115,7 @@ export default function CreateOrderPage() {
         }
     };
 
-    const loadInventories = async () => {
+    const loadInventories = useCallback(async () => {
         try {
             const productIds = products.map(p => p.id);
             const inventoryPromises = productIds.map(id => 
@@ -138,7 +126,19 @@ export default function CreateOrderPage() {
         } catch (err) {
             console.error("Error loading inventories:", err);
         }
-    };
+    }, [products]);
+
+    // Load inventories when products change
+    useEffect(() => {
+        if (products.length > 0) {
+            loadInventories();
+        }
+    }, [products, loadInventories]);
+
+    // Save form data to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+    }, [formData]);
 
     const refreshAllData = async () => {
         try {

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React, { useCallback, useState } from "react";
 
 import {
@@ -46,15 +47,29 @@ export default function ImageUpload({
     const [viewerOpen, setViewerOpen] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-    const handleDrag = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.type === "dragenter" || e.type === "dragover") {
-            setDragActive(true);
-        } else if (e.type === "dragleave") {
-            setDragActive(false);
+    const handleFileUpload = useCallback(async (file: File) => {
+        try {
+            setUploading(true);
+            await onUpload(file);
+        } catch (error) {
+            console.error("Error uploading image:", error);
+        } finally {
+            setUploading(false);
         }
-    }, []);
+    }, [onUpload]);
+
+    const handleDrag = useCallback(
+        (e: React.DragEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.type === "dragenter" || e.type === "dragover") {
+                setDragActive(true);
+            } else if (e.type === "dragleave") {
+                setDragActive(false);
+            }
+        },
+        []
+    );
 
     const handleDrop = useCallback(
         async (e: React.DragEvent) => {
@@ -69,7 +84,7 @@ export default function ImageUpload({
                 }
             }
         },
-        []
+        [handleFileUpload]
     );
 
     const handleFileSelect = useCallback(
@@ -79,19 +94,8 @@ export default function ImageUpload({
                 await handleFileUpload(file);
             }
         },
-        []
+        [handleFileUpload]
     );
-
-    const handleFileUpload = async (file: File) => {
-        try {
-            setUploading(true);
-            await onUpload(file);
-        } catch (error) {
-            console.error("Error uploading image:", error);
-        } finally {
-            setUploading(false);
-        }
-    };
 
     const handleDeleteImage = async (imageId: number) => {
         if (!onDelete) return;
@@ -111,17 +115,17 @@ export default function ImageUpload({
         setViewerOpen(true);
     };
 
-    const handleCloseViewer = () => {
+    const handleCloseViewer = useCallback(() => {
         setViewerOpen(false);
-    };
+    }, []);
 
-    const handlePreviousImage = () => {
+    const handlePreviousImage = useCallback(() => {
         setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
-    };
+    }, [images.length]);
 
-    const handleNextImage = () => {
+    const handleNextImage = useCallback(() => {
         setCurrentImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
-    };
+    }, [images.length]);
 
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         if (!viewerOpen) return;
@@ -137,7 +141,7 @@ export default function ImageUpload({
                 handleNextImage();
                 break;
         }
-    }, [viewerOpen]);
+    }, [viewerOpen, handleCloseViewer, handlePreviousImage, handleNextImage]);
 
     React.useEffect(() => {
         document.addEventListener('keydown', handleKeyDown);
@@ -235,9 +239,11 @@ export default function ImageUpload({
                                         }}
                                         aria-label={`Xem ảnh ${index + 1}`}
                                     >
-                                        <img
+                                        <Image
                                             src={image.image_url}
                                             alt={`Ảnh đơn hàng ${image.id}`}
+                                            width={200}
+                                            height={150}
                                             style={{
                                                 width: "100%",
                                                 height: "100%",
@@ -364,9 +370,11 @@ export default function ImageUpload({
                         }}
                     >
                         {images[currentImageIndex] && (
-                            <img
+                            <Image
                                 src={images[currentImageIndex].image_url}
                                 alt={`Ảnh đơn hàng ${images[currentImageIndex].id}`}
+                                width={800}
+                                height={600}
                                 style={{
                                     maxWidth: "100%",
                                     maxHeight: "100%",

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback,useEffect, useState } from "react";
 
 import SkeletonLoader from "@/components/SkeletonLoader";
 import { productApi } from "@/lib/products";
@@ -35,7 +35,7 @@ export default function InventoryHistoryPage() {
     const [error, setError] = useState<string | null>(null);
 
     // Load products
-    const loadProducts = async () => {
+    const loadProducts = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -70,7 +70,7 @@ export default function InventoryHistoryPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [searchParams]);
 
     // Load inventory history for selected product
     const loadHistory = async (productId: number) => {
@@ -96,7 +96,7 @@ export default function InventoryHistoryPage() {
 
     useEffect(() => {
         loadProducts();
-    }, []);
+    }, [loadProducts]);
 
     useEffect(() => {
         if (selectedProductId && typeof selectedProductId === "number") {

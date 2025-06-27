@@ -39,8 +39,8 @@ export default function ProductsPage() {
     const [editingProduct, setEditingProduct] = useState<ProductResponse | null>(null);
     const [formData, setFormData] = useState<{
         name: string;
-        spec: number | "";
-        original_price: number | "";
+        spec: number;
+        original_price: number;
     }>({
         name: "",
         spec: 0,
@@ -98,8 +98,8 @@ export default function ProductsPage() {
 
             const dataToSubmit = {
                 name: formData.name,
-                spec: formData.spec === "" ? 0 : formData.spec,
-                original_price: formData.original_price === "" ? 0 : formData.original_price,
+                spec: formData.spec,
+                original_price: formData.original_price,
             };
 
             if (editingProduct) {
@@ -285,22 +285,30 @@ export default function ProductsPage() {
                         <TextField
                             fullWidth
                             label="Quy cách"
-                            type="number"
-                            value={formData.spec}
-                            onChange={(e) => setFormData({ ...formData, spec: e.target.value === "" ? "" : Number(e.target.value) })}
+                            type="text"
+                            value={formData.spec !== undefined && formData.spec !== null && !isNaN(formData.spec) ? formData.spec.toLocaleString("vi-VN") : ""}
+                            onChange={(e) => {
+                                const raw = e.target.value.replace(/\D/g, "");
+                                setFormData({ ...formData, spec: raw ? Number(raw) : 0 });
+                            }}
                             margin="normal"
                             required
                             disabled={submitting}
+                            placeholder="0"
                         />
                         <TextField
                             fullWidth
                             label="Giá gốc (VND)"
-                            type="number"
-                            value={formData.original_price}
-                            onChange={(e) => setFormData({ ...formData, original_price: e.target.value === "" ? "" : Number(e.target.value) })}
+                            type="text"
+                            value={formData.original_price !== undefined && formData.original_price !== null && !isNaN(formData.original_price) ? formData.original_price.toLocaleString("vi-VN") : ""}
+                            onChange={(e) => {
+                                const raw = e.target.value.replace(/\D/g, "");
+                                setFormData({ ...formData, original_price: raw ? Number(raw) : 0 });
+                            }}
                             margin="normal"
                             required
                             disabled={submitting}
+                            placeholder="0"
                         />
                     </Box>
                 </DialogContent>
@@ -313,7 +321,7 @@ export default function ProductsPage() {
                         variant="contained"
                         loading={submitting}
                         loadingText="Đang lưu..."
-                        disabled={!formData.name || formData.spec === "" || formData.original_price === ""}
+                        disabled={!formData.name || formData.spec <= 0 || formData.original_price <= 0}
                     >
                         {editingProduct ? "Cập nhật" : "Thêm"}
                     </LoadingButton>

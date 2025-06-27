@@ -36,6 +36,7 @@ interface OrderFormData {
     order_date: string;
     delivery_status: string;
     debt_status: string;
+    shipping_fee: number;
     order_items: OrderItemFormData[];
 }
 
@@ -66,6 +67,7 @@ export default function CreateOrderPage() {
         order_date: new Date().toISOString().split("T")[0],
         delivery_status: "PENDING",
         debt_status: "",
+        shipping_fee: 0,
         order_items: [],
     });
 
@@ -377,6 +379,7 @@ export default function CreateOrderPage() {
                 order_date: new Date(formData.order_date).toISOString(),
                 delivery_status: formData.delivery_status,
                 debt_status: formData.debt_status,
+                shipping_fee: formData.shipping_fee || 0,
                 order_items: formData.order_items.map(item => ({
                     product_id: item.product_id,
                     number_of_boxes: item.number_of_boxes,
@@ -488,6 +491,19 @@ export default function CreateOrderPage() {
                                             label="Trạng thái công nợ"
                                             value={formData.debt_status}
                                             onChange={(e) => handleFormChange("debt_status", e.target.value)}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <TextField
+                                            fullWidth
+                                            type="text"
+                                            label="Phí vận chuyển (VND)"
+                                            value={formData.shipping_fee !== undefined && formData.shipping_fee !== null && !isNaN(formData.shipping_fee) ? formData.shipping_fee.toLocaleString("vi-VN") : ""}
+                                            onChange={(e) => {
+                                                const raw = e.target.value.replace(/\D/g, "");
+                                                handleFormChange("shipping_fee", raw ? parseInt(raw) : 0);
+                                            }}
+                                            placeholder="0"
                                         />
                                     </Grid>
                                 </Grid>

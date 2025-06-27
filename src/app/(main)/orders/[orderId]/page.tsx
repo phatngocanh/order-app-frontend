@@ -47,7 +47,7 @@ export default function OrderDetailPage() {
     const [success, setSuccess] = useState<string | null>(null);
     const [updating, setUpdating] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const [editType, setEditType] = useState<'delivery' | 'debt'>('delivery');
+    const [editType, setEditType] = useState<'delivery' | 'debt' | 'shipping'>('delivery');
     const [editStatus, setEditStatus] = useState('');
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
@@ -182,9 +182,15 @@ export default function OrderDetailPage() {
         }
     };
 
-    const handleEditStatus = (type: 'delivery' | 'debt') => {
+    const handleEditStatus = (type: 'delivery' | 'debt' | 'shipping') => {
         setEditType(type);
-        setEditStatus(type === 'delivery' ? order?.delivery_status || '' : order?.debt_status || '');
+        if (type === 'delivery') {
+            setEditStatus(order?.delivery_status || '');
+        } else if (type === 'debt') {
+            setEditStatus(order?.debt_status || '');
+        } else {
+            setEditStatus((order?.shipping_fee || 0).toString());
+        }
         setEditDialogOpen(true);
     };
 
@@ -202,8 +208,10 @@ export default function OrderDetailPage() {
 
             if (editType === 'delivery') {
                 updateData.delivery_status = editStatus;
-            } else {
+            } else if (editType === 'debt') {
                 updateData.debt_status = editStatus;
+            } else {
+                updateData.shipping_fee = parseInt(editStatus) || 0;
             }
 
             await ordersApi.update(order.id, updateData);
@@ -387,6 +395,24 @@ export default function OrderDetailPage() {
                                         </Button>
                                     </Box>
                                 </Grid>
+                                <Grid item xs={6}>
+                                    <Typography variant="body2" color="textSecondary">
+                                        Phí vận chuyển:
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Typography variant="body1" sx={{ flex: 1 }}>
+                                            {(order.shipping_fee || 0).toLocaleString("vi-VN")} VND
+                                        </Typography>
+                                        <Button
+                                            size="small"
+                                            startIcon={<EditIcon />}
+                                            onClick={() => handleEditStatus('shipping')}
+                                            sx={{ minWidth: 'auto', p: 0.5 }}
+                                        >
+                                            Sửa
+                                        </Button>
+                                    </Box>
+                                </Grid>
                                 {order.status_transitioned_at && (
                                     <Grid item xs={6}>
                                         <Typography variant="body2" color="textSecondary">
@@ -551,7 +577,7 @@ export default function OrderDetailPage() {
             {/* Edit Status Dialog */}
             <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>
-                    Cập nhật {editType === 'delivery' ? 'trạng thái giao hàng' : 'trạng thái công nợ'}
+                    Cập nhật {editType === 'delivery' ? 'trạng thái giao hàng' : editType === 'debt' ? 'trạng thái công nợ' : 'phí vận chuyển'}
                 </DialogTitle>
                 <DialogContent>
                     {editType === 'delivery' ? (
@@ -568,13 +594,24 @@ export default function OrderDetailPage() {
                                 <MenuItem value="COMPLETED">Hoàn thành</MenuItem>
                             </Select>
                         </FormControl>
-                    ) : (
+                    ) : editType === 'debt' ? (
                         <TextField
                             fullWidth
                             sx={{ mt: 2 }}
                             label="Trạng thái công nợ"
                             value={editStatus}
                             onChange={(e) => setEditStatus(e.target.value)}
+                        />
+                    ) : (
+                        <TextField
+                            fullWidth
+                            sx={{ mt: 2 }}
+                            label="Phí vận chuyển (VND)"
+                            type="number"
+                            value={editStatus}
+                            onChange={(e) => setEditStatus(e.target.value)}
+                            inputProps={{ min: 0 }}
+                            placeholder="0"
                         />
                     )}
                 </DialogContent>

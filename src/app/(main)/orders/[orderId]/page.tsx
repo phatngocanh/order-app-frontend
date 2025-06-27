@@ -607,10 +607,16 @@ export default function OrderDetailPage() {
                             fullWidth
                             sx={{ mt: 2 }}
                             label="Phí vận chuyển (VND)"
-                            type="number"
-                            value={editStatus}
-                            onChange={(e) => setEditStatus(e.target.value)}
-                            inputProps={{ min: 0 }}
+                            type="text"
+                            value={editType === 'shipping' ? (parseInt(editStatus) || 0).toLocaleString("vi-VN") : editStatus}
+                            onChange={(e) => {
+                                if (editType === 'shipping') {
+                                    const raw = e.target.value.replace(/\D/g, "");
+                                    setEditStatus(raw ? raw : "0");
+                                } else {
+                                    setEditStatus(e.target.value);
+                                }
+                            }}
                             placeholder="0"
                         />
                     )}

@@ -49,6 +49,7 @@ interface OrderItemFormData {
     discount: number;
     final_amount?: number;
     version: string;
+    export_from?: string;
 }
 
 const STORAGE_KEY = "order_form_data";
@@ -212,6 +213,7 @@ export default function CreateOrderPage() {
             selling_price: 0,
             discount: 0,
             version: "",
+            export_from: "",
         };
         setFormData(prev => ({
             ...prev,
@@ -280,15 +282,14 @@ export default function CreateOrderPage() {
         });
     };
 
-    const getInventoryWarning = (productId: number, quantity: number) => {
+    const getInventoryWarning = (productId: number, quantity: number, exportFrom: string) => {
         if (productId === 0 || quantity === 0) return null;
         
         const inventory = getInventoryForProduct(productId);
         if (!inventory) return null;
 
-        if (quantity > inventory.quantity) {
-            const externalQuantity = quantity - inventory.quantity;
-            return `${externalQuantity} đơn vị sẽ được nhập từ bên ngoài`;
+        if (exportFrom === "INVENTORY" && quantity > inventory.quantity) {
+            return `Số lượng vượt quá tồn kho (${inventory.quantity} đơn vị). Vui lòng chọn nguồn xuất "Từ bên ngoài" hoặc giảm số lượng.`;
         }
         return null;
     };
@@ -301,6 +302,15 @@ export default function CreateOrderPage() {
     const isBoxesDisabled = (item: OrderItemFormData) => {
         // Boxes is disabled if quantity was manually entered (not calculated from number_of_boxes × spec)
         return !!(item.quantity > 0 && !item.number_of_boxes && !item.spec);
+    };
+
+    const hasProductFromSource = (productId: number, exportFrom: string, currentIndex: number) => {
+        if (!exportFrom) return false; // Don't disable if no source selected yet
+        return formData.order_items.some((item, index) => 
+            index !== currentIndex && 
+            item.product_id === productId && 
+            item.export_from === exportFrom
+        );
     };
 
     const calculateOrderTotal = () => {
@@ -366,6 +376,9 @@ export default function CreateOrderPage() {
                 if (item.selling_price <= 0) {
                     throw new Error(`Giá bán phải lớn hơn 0 cho dòng ${i + 1}`);
                 }
+                if (!item.export_from || (item.export_from !== "INVENTORY" && item.export_from !== "EXTERNAL")) {
+                    throw new Error(`Vui lòng chọn nguồn xuất cho dòng ${i + 1}`);
+                }
 
                 // Get inventory version
                 const inventory = getInventoryForProduct(item.product_id);
@@ -389,6 +402,7 @@ export default function CreateOrderPage() {
                     discount: item.discount,
                     final_amount: item.final_amount,
                     version: item.version,
+                    export_from: item.export_from as string,
                 })),
             };
 
@@ -409,7 +423,18 @@ export default function CreateOrderPage() {
             }, 2000);
 
         } catch (err: any) {
-            setError(err.message || "Có lỗi xảy ra khi tạo đơn hàng");
+            // Extract error message from backend response
+            let errorMessage = "Có lỗi xảy ra khi tạo đơn hàng";
+            
+            if (err.response?.data?.errors && err.response.data.errors.length > 0) {
+                errorMessage = err.response.data.errors[0].message;
+            } else if (err.response?.data?.message) {
+                errorMessage = err.response.data.message;
+            } else if (err.message) {
+                errorMessage = err.message;
+            }
+            
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -550,7 +575,7 @@ export default function CreateOrderPage() {
                                 {formData.order_items.map((item, index) => {
                                     const inventory = getInventoryForProduct(item.product_id);
                                     const product = getProductById(item.product_id);
-                                    const warning = getInventoryWarning(item.product_id, item.quantity);
+                                    const warning = getInventoryWarning(item.product_id, item.quantity, item.export_from || "");
                                     const originalPrice = item.quantity * item.selling_price;
                                     const discountAmount = (originalPrice * (item.discount || 0)) / 100;
                                     
@@ -597,7 +622,7 @@ export default function CreateOrderPage() {
                                                                 updateOrderItem(index, "number_of_boxes", raw ? parseInt(raw) : undefined);
                                                             }}
                                                             placeholder="Tùy chọn"
-                                                            disabled={isBoxesDisabled(item)}
+                                                            disabled={item.product_id === 0 || isBoxesDisabled(item)}
                                                         />
                                                     </Tooltip>
                                                 </Grid>
@@ -617,7 +642,7 @@ export default function CreateOrderPage() {
                                                                 updateOrderItem(index, "spec", raw ? parseInt(raw) : undefined);
                                                             }}
                                                             placeholder="Tùy chọn"
-                                                            disabled={isSpecDisabled(item)}
+                                                            disabled={item.product_id === 0 || isSpecDisabled(item)}
                                                         />
                                                     </Tooltip>
                                                 </Grid>
@@ -637,6 +662,7 @@ export default function CreateOrderPage() {
                                                                 updateOrderItem(index, "quantity", raw ? parseInt(raw) : 0);
                                                             }}
                                                             placeholder="Nhập số lượng"
+                                                            disabled={item.product_id === 0}
                                                         />
                                                     </Tooltip>
                                                 </Grid>
@@ -659,6 +685,7 @@ export default function CreateOrderPage() {
                                                                 const raw = e.target.value.replace(/\D/g, "");
                                                                 updateOrderItem(index, "selling_price", raw ? parseInt(raw) : 0);
                                                             }}
+                                                            disabled={item.product_id === 0}
                                                         />
                                                     </Tooltip>
                                                 </Grid>
@@ -670,7 +697,35 @@ export default function CreateOrderPage() {
                                                         value={item.discount === 0 || item.discount === undefined || item.discount === null ? "" : item.discount}
                                                         onChange={(e) => updateOrderItem(index, "discount", e.target.value === "" ? 0 : parseInt(e.target.value) || 0)}
                                                         placeholder=""
+                                                        disabled={item.product_id === 0}
                                                     />
+                                                </Grid>
+                                                <Grid item xs={12} md={1.5}>
+                                                    <FormControl fullWidth>
+                                                        <InputLabel>Nguồn xuất</InputLabel>
+                                                        <Select
+                                                            value={item.export_from || ""}
+                                                            onChange={(e) => updateOrderItem(index, "export_from", e.target.value)}
+                                                            label="Nguồn xuất"
+                                                            displayEmpty
+                                                            disabled={item.product_id === 0}
+                                                        >
+                                                            <MenuItem value="" disabled>
+                                                            </MenuItem>
+                                                            <MenuItem 
+                                                                value="INVENTORY"
+                                                                disabled={hasProductFromSource(item.product_id, "INVENTORY", index)}
+                                                            >
+                                                                Từ kho
+                                                            </MenuItem>
+                                                            <MenuItem 
+                                                                value="EXTERNAL"
+                                                                disabled={hasProductFromSource(item.product_id, "EXTERNAL", index)}
+                                                            >
+                                                                Từ bên ngoài
+                                                            </MenuItem>
+                                                        </Select>
+                                                    </FormControl>
                                                 </Grid>
                                                 <Grid item xs={12} md={1.5}>
                                                     <Tooltip

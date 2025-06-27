@@ -108,6 +108,7 @@ export interface OrderItemRequest {
     discount?: number;
     final_amount?: number;
     version: string; // For optimistic locking
+    export_from: string; // INVENTORY or EXTERNAL, required
 }
 
 export interface UpdateOrderRequest {

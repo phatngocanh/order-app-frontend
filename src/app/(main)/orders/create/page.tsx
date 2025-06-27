@@ -701,17 +701,30 @@ export default function CreateOrderPage() {
                                                     />
                                                 </Grid>
                                                 <Grid item xs={12} md={1.5}>
-                                                    <FormControl fullWidth>
-                                                        <InputLabel>Nguồn xuất</InputLabel>
+                                                    <FormControl fullWidth variant="outlined">
+                                                        <InputLabel
+                                                            id={`export-from-label-${index}`}
+                                                            sx={{
+                                                                backgroundColor: '#fff',
+                                                                px: 0.5,
+                                                                left: 8,
+                                                                zIndex: 1,
+                                                                pointerEvents: 'none',
+                                                            }}
+                                                            shrink
+                                                        >
+                                                            Nguồn xuất
+                                                        </InputLabel>
                                                         <Select
+                                                            labelId={`export-from-label-${index}`}
                                                             value={item.export_from || ""}
                                                             onChange={(e) => updateOrderItem(index, "export_from", e.target.value)}
                                                             label="Nguồn xuất"
                                                             displayEmpty
                                                             disabled={item.product_id === 0}
+                                                            notched
                                                         >
-                                                            <MenuItem value="" disabled>
-                                                            </MenuItem>
+                                                            <MenuItem value="" disabled />
                                                             <MenuItem 
                                                                 value="INVENTORY"
                                                                 disabled={hasProductFromSource(item.product_id, "INVENTORY", index)}

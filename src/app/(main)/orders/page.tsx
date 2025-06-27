@@ -179,13 +179,14 @@ export default function OrdersPage() {
                             <TableCell>Trạng thái công nợ</TableCell>
                             <TableCell>Số lượng sản phẩm</TableCell>
                             <TableCell>Tổng tiền</TableCell>
+                            <TableCell>Lãi/Lỗ</TableCell>
                             <TableCell>Thao tác</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {orders.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={8} align="center">
+                                <TableCell colSpan={9} align="center">
                                     <Typography variant="body2" color="textSecondary">
                                         Chưa có đơn hàng nào
                                     </Typography>
@@ -210,6 +211,13 @@ export default function OrdersPage() {
                                     <TableCell>{order.product_count ?? '-'}</TableCell>
                                     <TableCell>
                                         {(order.total_amount ?? 0).toLocaleString("vi-VN")} VND
+                                    </TableCell>
+                                    <TableCell>
+                                        {order.total_profit_loss !== undefined && (
+                                            <span style={{ color: order.total_profit_loss >= 0 ? '#059669' : '#dc2626', fontWeight: 600 }}>
+                                                {order.total_profit_loss >= 0 ? '+' : ''}{order.total_profit_loss.toLocaleString('vi-VN')} VND
+                                            </span>
+                                        )}
                                     </TableCell>
                                     <TableCell>
                                         <Box sx={{ display: "flex", gap: 1 }}>

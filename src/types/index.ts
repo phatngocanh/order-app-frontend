@@ -123,7 +123,6 @@ export interface UpdateOrderRequest {
 
 export interface OrderResponse {
     id: number;
-    customer_id: number;
     order_date: string;
     delivery_status: string;
     debt_status: string;
@@ -133,6 +132,9 @@ export interface OrderResponse {
     customer: CustomerResponse;
     total_amount?: number;
     product_count?: number;
+    // Profit/Loss fields for total order
+    total_profit_loss?: number;
+    total_profit_loss_percentage?: number;
 }
 
 export interface OrderItemResponse {
@@ -147,6 +149,10 @@ export interface OrderItemResponse {
     discount: number;
     final_amount?: number;
     export_from: string;
+    // Profit/Loss fields
+    original_price?: number;
+    profit_loss?: number;
+    profit_loss_percentage?: number;
 }
 
 export interface GetAllOrdersResponse {

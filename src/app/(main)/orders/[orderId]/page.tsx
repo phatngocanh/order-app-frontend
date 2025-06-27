@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -345,8 +346,11 @@ export default function OrderDetailPage() {
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={6}>
+                                    <Typography variant="body2" color="textSecondary">
+                                        ID khách hàng:
+                                    </Typography>
                                     <Typography variant="body1">
-                                        {order.customer_id}
+                                        {order.customer.id}
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={6}>
@@ -497,6 +501,22 @@ export default function OrderDetailPage() {
                                         {(order.total_amount ?? 0).toLocaleString("vi-VN")} VND
                                     </Typography>
                                 </Grid>
+                                {order.total_profit_loss !== undefined && order.total_profit_loss_percentage !== undefined && (
+                                    <Grid item xs={12}>
+                                        <Typography variant="body2" color="textSecondary">
+                                            Tổng lãi/lỗ:
+                                        </Typography>
+                                        <Typography 
+                                            variant="h6" 
+                                            sx={{ 
+                                                color: order.total_profit_loss >= 0 ? '#059669' : '#dc2626',
+                                                fontWeight: 'bold'
+                                            }}
+                                        >
+                                            {order.total_profit_loss >= 0 ? '+' : ''}{order.total_profit_loss.toLocaleString("vi-VN")} VND ({order.total_profit_loss_percentage >= 0 ? '+' : ''}{order.total_profit_loss_percentage.toFixed(1)}%)
+                                        </Typography>
+                                    </Grid>
+                                )}
                             </Grid>
                         </CardContent>
                     </Card>
@@ -521,32 +541,74 @@ export default function OrderDetailPage() {
                                             <TableCell>Giá bán</TableCell>
                                             <TableCell>Chiết khấu</TableCell>
                                             <TableCell>Thành tiền</TableCell>
+                                            <TableCell>Lãi/Lỗ</TableCell>
                                             <TableCell>Nguồn xuất</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {order.order_items.map((item) => (
-                                            <TableRow key={item.id}>
-                                                <TableCell>{item.id}</TableCell>
-                                                <TableCell>{item.product_name || item.product_id}</TableCell>
-                                                <TableCell>{item.number_of_boxes || "-"}</TableCell>
-                                                <TableCell>{item.spec || "-"}</TableCell>
-                                                <TableCell>{item.quantity}</TableCell>
-                                                <TableCell>
-                                                    {item.selling_price.toLocaleString("vi-VN")} VND
-                                                </TableCell>
-                                                <TableCell>{item.discount}%</TableCell>
-                                                <TableCell>
-                                                    {(item.final_amount ?? 0).toLocaleString("vi-VN")} VND
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Chip
-                                                        label={getExportFromLabel(item.export_from)}
-                                                        color={getExportFromColor(item.export_from) as any}
-                                                        size="small"
-                                                    />
-                                                </TableCell>
-                                            </TableRow>
+                                            <React.Fragment key={item.id}>
+                                                <TableRow>
+                                                    <TableCell sx={{ borderBottom: 'none' }}>{item.id}</TableCell>
+                                                    <TableCell sx={{ borderBottom: 'none' }}>{item.product_name || item.product_id}</TableCell>
+                                                    <TableCell sx={{ borderBottom: 'none' }}>{item.number_of_boxes || "-"}</TableCell>
+                                                    <TableCell sx={{ borderBottom: 'none' }}>{item.spec || "-"}</TableCell>
+                                                    <TableCell sx={{ borderBottom: 'none' }}>{item.quantity}</TableCell>
+                                                    <TableCell sx={{ borderBottom: 'none' }}>{item.selling_price.toLocaleString("vi-VN")} VND</TableCell>
+                                                    <TableCell sx={{ borderBottom: 'none' }}>{item.discount}%</TableCell>
+                                                    <TableCell sx={{ borderBottom: 'none' }}>{(item.final_amount ?? 0).toLocaleString("vi-VN")} VND</TableCell>
+                                                    <TableCell sx={{ borderBottom: 'none' }}>
+                                                        {item.profit_loss !== undefined && item.profit_loss_percentage !== undefined && (
+                                                            <Box>
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    sx={{
+                                                                        color: item.profit_loss >= 0 ? '#059669' : '#dc2626',
+                                                                        fontWeight: 'bold'
+                                                                    }}
+                                                                >
+                                                                    {item.profit_loss >= 0 ? '+' : ''}{item.profit_loss.toLocaleString("vi-VN")} VND
+                                                                </Typography>
+                                                                <Typography
+                                                                    variant="caption"
+                                                                    sx={{
+                                                                        color: item.profit_loss_percentage >= 0 ? '#059669' : '#dc2626'
+                                                                    }}
+                                                                >
+                                                                    ({item.profit_loss_percentage >= 0 ? '+' : ''}{item.profit_loss_percentage.toFixed(1)}%)
+                                                                </Typography>
+                                                            </Box>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell sx={{ borderBottom: 'none' }}>
+                                                        <Chip
+                                                            label={getExportFromLabel(item.export_from)}
+                                                            color={getExportFromColor(item.export_from) as any}
+                                                            size="small"
+                                                        />
+                                                    </TableCell>
+                                                </TableRow>
+                                                {item.original_price !== undefined && item.profit_loss !== undefined && item.profit_loss_percentage !== undefined && (
+                                                    <TableRow>
+                                                        <TableCell colSpan={10} sx={{ p: 0.5, border: 0, borderBottom: '1px solid #e0e0e0' }}>
+                                                            <span
+                                                                style={{
+                                                                    fontSize: 13,
+                                                                    color: item.profit_loss >= 0 ? '#059669' : '#dc2626',
+                                                                    fontStyle: 'italic',
+                                                                    marginLeft: 24,
+                                                                    display: 'block',
+                                                                    opacity: 0.85,
+                                                                }}
+                                                            >
+                                                                Giá vốn {item.original_price.toLocaleString('vi-VN')}đ × {item.quantity} = {(item.original_price * item.quantity).toLocaleString('vi-VN')}, bán {item.selling_price.toLocaleString('vi-VN')}đ × {item.quantity} = {(item.selling_price * item.quantity).toLocaleString('vi-VN')}
+                                                                {item.discount > 0 ? `, chiết khấu ${item.discount}% (${((item.selling_price * item.quantity * item.discount) / 100).toLocaleString('vi-VN')}đ) = còn ${(item.final_amount || 0).toLocaleString('vi-VN')}` : ''}
+                                                                → {item.profit_loss >= 0 ? 'Lãi' : 'Lỗ'} {Math.abs(item.profit_loss).toLocaleString('vi-VN')}đ ({item.profit_loss_percentage >= 0 ? '+' : ''}{item.profit_loss_percentage.toFixed(1)}%)
+                                                            </span>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )}
+                                            </React.Fragment>
                                         ))}
                                     </TableBody>
                                 </Table>

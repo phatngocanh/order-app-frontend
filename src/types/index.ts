@@ -234,6 +234,25 @@ export interface InventoryResponse {
     version: string;
 }
 
+export interface ProductInfo {
+    id: number;
+    name: string;
+    spec: number;
+    original_price: number;
+}
+
+export interface InventoryWithProductResponse {
+    id: number;
+    product_id: number;
+    quantity: number;
+    version: string;
+    product: ProductInfo;
+}
+
+export interface GetAllInventoryResponse {
+    inventories: InventoryWithProductResponse[];
+}
+
 export interface UpdateInventoryQuantityRequest {
     quantity: number;
     note?: string;

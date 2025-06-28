@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import LoadingButton from "@/components/LoadingButton";
 import SkeletonLoader from "@/components/SkeletonLoader";
 import { extractErrorMessage } from "@/lib/error-utils";
-import { productApi } from "@/lib/products";
-import { InventoryResponse, ProductResponse, UpdateInventoryQuantityRequest } from "@/types";
+import { inventoryApi } from "@/lib/inventory";
+import { InventoryWithProductResponse, UpdateInventoryQuantityRequest } from "@/types";
 import { Edit as EditIcon } from "@mui/icons-material";
 import {
     Alert,
@@ -31,13 +31,12 @@ import {
 } from "@mui/material";
 
 export default function InventoryPage() {
-    const [products, setProducts] = useState<ProductResponse[]>([]);
-    const [inventories, setInventories] = useState<{ [key: number]: InventoryResponse }>({});
+    const [inventories, setInventories] = useState<InventoryWithProductResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [openDialog, setOpenDialog] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState<ProductResponse | null>(null);
+    const [selectedInventory, setSelectedInventory] = useState<InventoryWithProductResponse | null>(null);
     const [formData, setFormData] = useState<{
         quantity: number | "";
         note: string;
@@ -61,27 +60,15 @@ export default function InventoryPage() {
         }
     }, [openDialog]);
 
-    // Load products and their inventories
+    // Load inventory data (now includes product info)
     const loadData = async () => {
         try {
             setLoading(true);
             setError(null);
             
-            // Load products
-            const productsData = await productApi.getAll();
-            setProducts(productsData);
-            
-            // Load inventory for each product
-            const inventoryData: { [key: number]: InventoryResponse } = {};
-            for (const product of productsData) {
-                try {
-                    const inventory = await productApi.getInventory(product.id);
-                    inventoryData[product.id] = inventory;
-                } catch (err) {
-                    console.error(`Error loading inventory for product ${product.id}:`, err);
-                }
-            }
-            setInventories(inventoryData);
+            // Load all inventory with product info in a single API call
+            const data = await inventoryApi.getAll();
+            setInventories(data.inventories);
         } catch (err: any) {
             console.error("Error loading data:", err);
             setError(extractErrorMessage(err, "Không thể tải dữ liệu kho. Vui lòng thử lại."));
@@ -96,7 +83,7 @@ export default function InventoryPage() {
 
     // Handle form submission
     const handleSubmit = async () => {
-        if (!selectedProduct) return;
+        if (!selectedInventory) return;
         
         try {
             setSubmitting(true);
@@ -108,11 +95,11 @@ export default function InventoryPage() {
                 version: formData.version,
             };
 
-            await productApi.updateInventoryQuantity(selectedProduct.id, dataToSubmit);
+            await inventoryApi.updateQuantity(selectedInventory.product_id, dataToSubmit);
             
             // Reset form and reload data
             setOpenDialog(false);
-            setSelectedProduct(null);
+            setSelectedInventory(null);
             setFormData({ quantity: "", note: "", version: "" });
             await loadData();
         } catch (err: any) {
@@ -124,13 +111,12 @@ export default function InventoryPage() {
     };
 
     // Handle edit inventory
-    const handleEditInventory = (product: ProductResponse) => {
-        setSelectedProduct(product);
-        const currentInventory = inventories[product.id];
+    const handleEditInventory = (inventory: InventoryWithProductResponse) => {
+        setSelectedInventory(inventory);
         setFormData({
             quantity: "",
             note: "",
-            version: currentInventory ? currentInventory.version : "",
+            version: inventory.version,
         });
         setOpenDialog(true);
     };
@@ -138,7 +124,7 @@ export default function InventoryPage() {
     // Handle dialog close
     const handleCloseDialog = () => {
         setOpenDialog(false);
-        setSelectedProduct(null);
+        setSelectedInventory(null);
         setFormData({ quantity: "", note: "", version: "" });
         setError(null);
     };
@@ -188,31 +174,28 @@ export default function InventoryPage() {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {products.map((product) => {
-                                    const inventory = inventories[product.id];
-                                    return (
-                                        <TableRow key={product.id}>
-                                            <TableCell>{product.id}</TableCell>
-                                            <TableCell>{product.name}</TableCell>
-                                            <TableCell>
-                                                {inventory ? inventory.quantity : "N/A"}
-                                            </TableCell>
-                                            <TableCell>
-                                                {inventory ? inventory.version : "N/A"}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Tooltip title="Cập nhật số lượng kho">
-                                                    <IconButton
-                                                        color="primary"
-                                                        onClick={() => handleEditInventory(product)}
-                                                    >
-                                                        <EditIcon />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })}
+                                {inventories.map((inventory) => (
+                                    <TableRow key={inventory.product_id}>
+                                        <TableCell>{inventory.product_id}</TableCell>
+                                        <TableCell>{inventory.product.name}</TableCell>
+                                        <TableCell>
+                                            {inventory.quantity}
+                                        </TableCell>
+                                        <TableCell>
+                                            {inventory.version}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Tooltip title="Cập nhật số lượng kho">
+                                                <IconButton
+                                                    color="primary"
+                                                    onClick={() => handleEditInventory(inventory)}
+                                                >
+                                                    <EditIcon />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -222,7 +205,7 @@ export default function InventoryPage() {
             {/* Update Inventory Dialog */}
             <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
                 <DialogTitle>
-                    Cập nhật số lượng kho - {selectedProduct?.name}
+                    Cập nhật số lượng kho - {selectedInventory?.product.name}
                 </DialogTitle>
                 <DialogContent>
                     <Box sx={{ pt: 2 }}>

@@ -79,7 +79,6 @@ export interface Order {
     delivery_status: string;
     debt_status: string;
     status_transitioned_at?: string;
-    shipping_fee?: number;
     additional_cost?: number;
     additional_cost_note?: string;
     order_items: OrderItem[];
@@ -103,7 +102,6 @@ export interface CreateOrderRequest {
     delivery_status: string;
     debt_status?: string;
     status_transitioned_at?: string;
-    shipping_fee?: number;
     additional_cost?: number;
     additional_cost_note?: string;
     order_items: OrderItemRequest[];
@@ -128,7 +126,6 @@ export interface UpdateOrderRequest {
     delivery_status?: string;
     debt_status?: string;
     status_transitioned_at?: string;
-    shipping_fee?: number;
     additional_cost?: number;
     additional_cost_note?: string;
 }
@@ -139,7 +136,6 @@ export interface OrderResponse {
     delivery_status: string;
     debt_status: string;
     status_transitioned_at?: string;
-    shipping_fee?: number;
     additional_cost?: number;
     additional_cost_note?: string;
     order_items: OrderItemResponse[];

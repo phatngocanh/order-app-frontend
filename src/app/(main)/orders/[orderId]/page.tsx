@@ -47,7 +47,7 @@ export default function OrderDetailPage() {
     const [success, setSuccess] = useState<string | null>(null);
     const [updating, setUpdating] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const [editType, setEditType] = useState<'delivery' | 'debt' | 'shipping' | 'additional_cost' | 'additional_cost_note'>('delivery');
+    const [editType, setEditType] = useState<'delivery' | 'debt' | 'additional_cost' | 'additional_cost_note'>('delivery');
     const [editStatus, setEditStatus] = useState('');
     const [editAdditionalCost, setEditAdditionalCost] = useState('');
     const [editAdditionalCostNote, setEditAdditionalCostNote] = useState('');
@@ -169,14 +169,12 @@ export default function OrderDetailPage() {
         }
     };
 
-    const handleEditStatus = (type: 'delivery' | 'debt' | 'shipping' | 'additional_cost' | 'additional_cost_note') => {
+    const handleEditStatus = (type: 'delivery' | 'debt' | 'additional_cost' | 'additional_cost_note') => {
         setEditType(type);
         if (type === 'delivery') {
             setEditStatus(order?.delivery_status || '');
         } else if (type === 'debt') {
             setEditStatus(order?.debt_status || '');
-        } else if (type === 'shipping') {
-            setEditStatus((order?.shipping_fee || 0).toString());
         } else if (type === 'additional_cost') {
             setEditAdditionalCost((order?.additional_cost || 0).toString());
         } else if (type === 'additional_cost_note') {
@@ -202,8 +200,6 @@ export default function OrderDetailPage() {
                 updateData.delivery_status = editStatus;
             } else if (editType === 'debt') {
                 updateData.debt_status = editStatus;
-            } else if (editType === 'shipping') {
-                updateData.shipping_fee = parseInt(editStatus) || 0;
             } else if (editType === 'additional_cost') {
                 updateData.additional_cost = parseInt(editAdditionalCost) || 0;
             } else if (editType === 'additional_cost_note') {
@@ -390,24 +386,6 @@ export default function OrderDetailPage() {
                                             size="small"
                                             startIcon={<EditIcon />}
                                             onClick={() => handleEditStatus('debt')}
-                                            sx={{ minWidth: 'auto', p: 0.5 }}
-                                        >
-                                            Sửa
-                                        </Button>
-                                    </Box>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Typography variant="body2" color="textSecondary">
-                                        Phí vận chuyển:
-                                    </Typography>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Typography variant="body1" sx={{ flex: 1 }}>
-                                            {(order.shipping_fee || 0).toLocaleString("vi-VN")} VND
-                                        </Typography>
-                                        <Button
-                                            size="small"
-                                            startIcon={<EditIcon />}
-                                            onClick={() => handleEditStatus('shipping')}
                                             sx={{ minWidth: 'auto', p: 0.5 }}
                                         >
                                             Sửa
@@ -671,7 +649,7 @@ export default function OrderDetailPage() {
             {/* Edit Status Dialog */}
             <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>
-                    Cập nhật {editType === 'delivery' ? 'trạng thái giao hàng' : editType === 'debt' ? 'trạng thái công nợ' : editType === 'shipping' ? 'phí vận chuyển' : editType === 'additional_cost' ? 'chi phí phụ thêm' : 'ghi chú chi phí phụ thêm'}
+                    Cập nhật {editType === 'delivery' ? 'trạng thái giao hàng' : editType === 'debt' ? 'trạng thái công nợ' : editType === 'additional_cost' ? 'chi phí phụ thêm' : 'ghi chú chi phí phụ thêm'}
                 </DialogTitle>
                 <DialogContent>
                     {editType === 'delivery' ? (
@@ -695,19 +673,6 @@ export default function OrderDetailPage() {
                             label="Trạng thái công nợ"
                             value={editStatus}
                             onChange={(e) => setEditStatus(e.target.value)}
-                        />
-                    ) : editType === 'shipping' ? (
-                        <TextField
-                            fullWidth
-                            sx={{ mt: 2 }}
-                            label="Phí vận chuyển (VND)"
-                            type="text"
-                            value={editStatus}
-                            onChange={(e) => {
-                                const raw = e.target.value.replace(/\D/g, "");
-                                setEditStatus(raw ? raw : "0");
-                            }}
-                            placeholder="0"
                         />
                     ) : editType === 'additional_cost' ? (
                         <TextField

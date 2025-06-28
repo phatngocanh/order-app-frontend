@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { auth } from "@/lib/auth";
-import { ordersApi } from "@/lib/orders";
+import { statisticsApi } from "@/lib/statistics";
 import { AppBar, Badge, Button, Toolbar, Typography } from "@mui/material";
 
 export default function MainLayout({
@@ -36,11 +36,8 @@ export default function MainLayout({
     const loadPendingOrdersCount = async () => {
         try {
             setLoading(true);
-            const orders = await ordersApi.getAll();
-            const pendingCount = orders.orders.filter(order => 
-                order.delivery_status !== "COMPLETED"
-            ).length;
-            setPendingOrdersCount(pendingCount);
+            const stats = await statisticsApi.getDashboardStats();
+            setPendingOrdersCount(stats.pending_orders);
         } catch (err) {
             console.error("Error loading pending orders count:", err);
         } finally {

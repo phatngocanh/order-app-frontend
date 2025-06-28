@@ -4,9 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { customerApi } from "@/lib/customers";
-import { ordersApi } from "@/lib/orders";
-import { productApi } from "@/lib/products";
+import { DashboardStats,statisticsApi } from "@/lib/statistics";
 import { 
     Favorite as FavoriteIcon,
     Info as InfoIcon,
@@ -27,15 +25,6 @@ import {
     Tooltip,
     Typography,
 } from "@mui/material";
-
-interface DashboardStats {
-    totalProducts: number;
-    totalCustomers: number;
-    totalInventoryItems: number;
-    lowStockProducts: number;
-    totalOrders: number;
-    pendingOrders: number;
-}
 
 // Motivational messages for your girlfriend
 const motivationalMessages = [
@@ -131,12 +120,12 @@ const motivationalMessages = [
 
 export default function DashboardPage() {
     const [stats, setStats] = useState<DashboardStats>({
-        totalProducts: 0,
-        totalCustomers: 0,
-        totalInventoryItems: 0,
-        lowStockProducts: 0,
-        totalOrders: 0,
-        pendingOrders: 0,
+        total_products: 0,
+        total_customers: 0,
+        total_inventory_items: 0,
+        low_stock_products: 0,
+        total_orders: 0,
+        pending_orders: 0,
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -152,42 +141,9 @@ export default function DashboardPage() {
                 setLoading(true);
                 setError(null);
 
-                // Load products, customers, and orders in parallel
-                const [products, customers, orders] = await Promise.all([
-                    productApi.getAll(),
-                    customerApi.getAll(),
-                    ordersApi.getAll(),
-                ]);
-
-                // Calculate inventory stats
-                let totalInventoryItems = 0;
-                let lowStockProducts = 0;
-
-                for (const product of products) {
-                    try {
-                        const inventory = await productApi.getInventory(product.id);
-                        totalInventoryItems += inventory.quantity;
-                        if (inventory.quantity < 10) { // Consider low stock if less than 10
-                            lowStockProducts++;
-                        }
-                    } catch (err) {
-                        console.error(`Error loading inventory for product ${product.id}:`, err);
-                    }
-                }
-
-                // Calculate order stats
-                const pendingOrders = orders.orders.filter(order => 
-                    order.delivery_status !== "COMPLETED"
-                ).length;
-
-                setStats({
-                    totalProducts: products.length,
-                    totalCustomers: customers.length,
-                    totalInventoryItems,
-                    lowStockProducts,
-                    totalOrders: orders.orders.length,
-                    pendingOrders,
-                });
+                // Load dashboard statistics in a single API call
+                const dashboardStats = await statisticsApi.getDashboardStats();
+                setStats(dashboardStats);
             } catch (err: any) {
                 console.error("Error loading dashboard data:", err);
                 setError("Không thể tải dữ liệu bảng điều khiển. Vui lòng thử lại.");
@@ -271,7 +227,7 @@ export default function DashboardPage() {
                         <CardContent sx={{ textAlign: "center" }}>
                             <ShoppingCartIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
                             <Typography variant="h4" component="div">
-                                {stats.totalProducts}
+                                {stats.total_products}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 Tổng sản phẩm
@@ -285,7 +241,7 @@ export default function DashboardPage() {
                         <CardContent sx={{ textAlign: "center" }}>
                             <PeopleIcon color="secondary" sx={{ fontSize: 40, mb: 1 }} />
                             <Typography variant="h4" component="div">
-                                {stats.totalCustomers}
+                                {stats.total_customers}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 Tổng khách hàng
@@ -299,7 +255,7 @@ export default function DashboardPage() {
                         <CardContent sx={{ textAlign: "center" }}>
                             <ReceiptIcon color="success" sx={{ fontSize: 40, mb: 1 }} />
                             <Typography variant="h4" component="div">
-                                {stats.totalOrders}
+                                {stats.total_orders}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 Tổng đơn hàng
@@ -313,7 +269,7 @@ export default function DashboardPage() {
                         <CardContent sx={{ textAlign: "center" }}>
                             <InventoryIcon color="info" sx={{ fontSize: 40, mb: 1 }} />
                             <Typography variant="h4" component="div">
-                                {stats.totalInventoryItems}
+                                {stats.total_inventory_items}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 Tổng tồn kho
@@ -327,7 +283,7 @@ export default function DashboardPage() {
                         <CardContent sx={{ textAlign: "center" }}>
                             <TrendingUpIcon color="warning" sx={{ fontSize: 40, mb: 1 }} />
                             <Typography variant="h4" component="div">
-                                {stats.pendingOrders}
+                                {stats.pending_orders}
                             </Typography>
                             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5 }}>
                                 <Typography variant="body2" color="text.secondary">
@@ -346,7 +302,7 @@ export default function DashboardPage() {
                         <CardContent sx={{ textAlign: "center" }}>
                             <TrendingUpIcon color="error" sx={{ fontSize: 40, mb: 1 }} />
                             <Typography variant="h4" component="div">
-                                {stats.lowStockProducts}
+                                {stats.low_stock_products}
                             </Typography>
                             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5 }}>
                                 <Typography variant="body2" color="text.secondary">
@@ -370,7 +326,7 @@ export default function DashboardPage() {
                                 Quản lý Đơn hàng
                             </Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                Tạo và quản lý đơn hàng. Hiện có {stats.totalOrders} đơn hàng, trong đó {stats.pendingOrders} đơn đang chờ xử lý.
+                                Tạo và quản lý đơn hàng. Hiện có {stats.total_orders} đơn hàng, trong đó {stats.pending_orders} đơn đang chờ xử lý.
                             </Typography>
                             <Link href="/orders" style={{ textDecoration: "none" }}>
                                 <Button variant="contained" color="success" fullWidth>
@@ -388,7 +344,7 @@ export default function DashboardPage() {
                                 Quản lý Sản phẩm
                             </Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                Tạo, chỉnh sửa và quản lý thông tin sản phẩm. Hiện có {stats.totalProducts} sản phẩm trong hệ thống.
+                                Tạo, chỉnh sửa và quản lý thông tin sản phẩm. Hiện có {stats.total_products} sản phẩm trong hệ thống.
                             </Typography>
                             <Link href="/products" style={{ textDecoration: "none" }}>
                                 <Button variant="contained" color="primary" fullWidth>
@@ -406,7 +362,7 @@ export default function DashboardPage() {
                                 Quản lý Khách hàng
                             </Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                Quản lý thông tin khách hàng và danh sách liên hệ. Hiện có {stats.totalCustomers} khách hàng.
+                                Quản lý thông tin khách hàng và danh sách liên hệ. Hiện có {stats.total_customers} khách hàng.
                             </Typography>
                             <Link href="/customers" style={{ textDecoration: "none" }}>
                                 <Button variant="contained" color="secondary" fullWidth>
@@ -424,7 +380,7 @@ export default function DashboardPage() {
                                 Quản lý Kho
                             </Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                Cập nhật số lượng tồn kho cho các sản phẩm. Tổng tồn kho: {stats.totalInventoryItems} đơn vị.
+                                Cập nhật số lượng tồn kho cho các sản phẩm. Tổng tồn kho: {stats.total_inventory_items} đơn vị.
                             </Typography>
                             <Link href="/inventory" style={{ textDecoration: "none" }}>
                                 <Button variant="contained" color="info" fullWidth>

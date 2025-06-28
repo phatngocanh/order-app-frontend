@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import ImageUpload from "@/components/ImageUpload";
 import { orderImagesApi } from "@/lib/order-images";
 import { ordersApi } from "@/lib/orders";
-import { OrderImage, OrderResponse, UpdateOrderRequest } from "@/types";
+import { OrderResponse, UpdateOrderRequest } from "@/types";
 import { ArrowBack as ArrowBackIcon, Delete as DeleteIcon, Edit as EditIcon } from "@mui/icons-material";
 import {
     Alert,
@@ -55,8 +55,6 @@ export default function OrderDetailPage() {
     const [deleting, setDeleting] = useState(false);
     
     // Image states
-    const [images, setImages] = useState<OrderImage[]>([]);
-    const [loadingImages, setLoadingImages] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(false);
 
     const loadOrder = useCallback(async () => {
@@ -72,24 +70,11 @@ export default function OrderDetailPage() {
         }
     }, [orderId]);
 
-    const loadImages = useCallback(async () => {
-        try {
-            setLoadingImages(true);
-            const response = await orderImagesApi.getImagesByOrderId(orderId);
-            setImages(response.orderImages);
-        } catch (err) {
-            console.error("Error loading images:", err);
-        } finally {
-            setLoadingImages(false);
-        }
-    }, [orderId]);
-
     useEffect(() => {
         if (orderId) {
             loadOrder();
-            loadImages();
         }
-    }, [orderId, loadOrder, loadImages]);
+    }, [orderId, loadOrder]);
 
     const handleDeleteClick = () => {
         setDeleteDialogOpen(true);
@@ -253,7 +238,7 @@ export default function OrderDetailPage() {
             setUploadingImage(true);
             setError(null);
             await orderImagesApi.uploadImage(orderId, file);
-            await loadImages(); // Reload images after upload
+            await loadOrder(); // Reload order after upload
             setSuccess("Ảnh đã được tải lên thành công");
             setTimeout(() => setSuccess(null), 3000);
         } catch (err) {
@@ -267,7 +252,7 @@ export default function OrderDetailPage() {
     const handleImageDelete = async (imageId: number) => {
         try {
             await orderImagesApi.deleteImage(orderId, imageId);
-            await loadImages(); // Reload images after deletion
+            await loadOrder(); // Reload order after deletion
             setSuccess("Ảnh đã được xóa thành công");
             setTimeout(() => setSuccess(null), 3000);
         } catch (err) {
@@ -675,8 +660,7 @@ export default function OrderDetailPage() {
                             <ImageUpload
                                 onUpload={handleImageUpload}
                                 onDelete={handleImageDelete}
-                                images={images}
-                                loading={loadingImages}
+                                images={order.images || []}
                                 disabled={uploadingImage}
                             />
                         </CardContent>

@@ -144,6 +144,7 @@ export interface OrderResponse {
     additional_cost_note?: string;
     order_items: OrderItemResponse[];
     customer: CustomerResponse;
+    images?: OrderImage[];
     total_amount?: number;
     product_count?: number;
     // Profit/Loss fields for total order
@@ -183,14 +184,20 @@ export interface OrderImage {
     order_id: number;
     image_url: string;
     image_type?: string;
+    s3_key?: string;
 }
 
 export interface UploadOrderImageResponse {
-    orderImages: OrderImage;
+    orderImage: OrderImage;
 }
 
 export interface GetOrderImagesResponse {
     orderImages: OrderImage[];
+}
+
+export interface GenerateSignedUploadURLResponse {
+    signed_url: string;
+    s3_key: string;
 }
 
 // Form types

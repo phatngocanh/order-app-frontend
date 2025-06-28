@@ -7,6 +7,11 @@ import {
     UpdateOrderRequest,
 } from "@/types";
 
+export interface OrderFilters {
+    customer_id?: number;
+    delivery_statuses?: string; // comma-separated statuses like "PENDING,DELIVERED"
+}
+
 export const ordersApi = {
     // Create a new order
     create: async (data: CreateOrderRequest) => {
@@ -20,9 +25,19 @@ export const ordersApi = {
         return response.data;
     },
 
-    // Get all orders
-    getAll: async () => {
-        const response = await api.get<ApiResponse<GetAllOrdersResponse>>("/orders");
+    // Get all orders with optional filters
+    getAll: async (filters?: OrderFilters) => {
+        const params = new URLSearchParams();
+        if (filters?.customer_id) {
+            params.append('customer_id', filters.customer_id.toString());
+        }
+        if (filters?.delivery_statuses) {
+            params.append('delivery_statuses', filters.delivery_statuses);
+        }
+        
+        const queryString = params.toString();
+        const url = queryString ? `/orders?${queryString}` : '/orders';
+        const response = await api.get<ApiResponse<GetAllOrdersResponse>>(url);
         return response.data.data;
     },
 

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import LoadingButton from "@/components/LoadingButton";
 import SkeletonLoader from "@/components/SkeletonLoader";
 import { productApi } from "@/lib/products";
-import { InventoryResponse, ProductResponse, UpdateProductRequest } from "@/types";
+import { ProductResponse, UpdateProductRequest } from "@/types";
 import { Add as AddIcon, Edit as EditIcon, Inventory as InventoryIcon } from "@mui/icons-material";
 import {
     Alert,
@@ -31,7 +31,6 @@ import {
 
 export default function ProductsPage() {
     const [products, setProducts] = useState<ProductResponse[]>([]);
-    const [inventories, setInventories] = useState<{ [key: number]: InventoryResponse }>({});
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -47,27 +46,15 @@ export default function ProductsPage() {
         original_price: 0,
     });
 
-    // Load products and their inventories
+    // Load products (now includes inventory info)
     const loadProducts = async () => {
         try {
             setLoading(true);
             setError(null);
             
-            // Load products
+            // Load products (now includes inventory info)
             const data = await productApi.getAll();
             setProducts(data);
-            
-            // Load inventory for each product
-            const inventoryData: { [key: number]: InventoryResponse } = {};
-            for (const product of data) {
-                try {
-                    const inventory = await productApi.getInventory(product.id);
-                    inventoryData[product.id] = inventory;
-                } catch (err) {
-                    console.error(`Error loading inventory for product ${product.id}:`, err);
-                }
-            }
-            setInventories(inventoryData);
         } catch (err: any) {
             console.error("Error loading products:", err);
             
@@ -225,41 +212,38 @@ export default function ProductsPage() {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {products.map((product) => {
-                                    const inventory = inventories[product.id];
-                                    return (
-                                        <TableRow key={product.id}>
-                                            <TableCell>{product.id}</TableCell>
-                                            <TableCell>{product.name}</TableCell>
-                                            <TableCell>{product.spec}</TableCell>
-                                            <TableCell>{formatPrice(product.original_price)}</TableCell>
-                                            <TableCell>
-                                                {inventory ? inventory.quantity : "N/A"}
-                                            </TableCell>
-                                            <TableCell>
-                                                {inventory ? inventory.version : "N/A"}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Tooltip title="Chỉnh sửa Sản phẩm">
-                                                    <IconButton
-                                                        color="primary"
-                                                        onClick={() => handleEdit(product)}
-                                                    >
-                                                        <EditIcon />
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title="Xem lịch sử kho">
-                                                    <IconButton
-                                                        color="secondary"
-                                                        onClick={() => window.location.href = `/inventory-history?product=${product.id}`}
-                                                    >
-                                                        <InventoryIcon />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })}
+                                {products.map((product) => (
+                                    <TableRow key={product.id}>
+                                        <TableCell>{product.id}</TableCell>
+                                        <TableCell>{product.name}</TableCell>
+                                        <TableCell>{product.spec}</TableCell>
+                                        <TableCell>{formatPrice(product.original_price)}</TableCell>
+                                        <TableCell>
+                                            {product.inventory ? product.inventory.quantity : "N/A"}
+                                        </TableCell>
+                                        <TableCell>
+                                            {product.inventory ? product.inventory.version : "N/A"}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Tooltip title="Chỉnh sửa Sản phẩm">
+                                                <IconButton
+                                                    color="primary"
+                                                    onClick={() => handleEdit(product)}
+                                                >
+                                                    <EditIcon />
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title="Xem lịch sử kho">
+                                                <IconButton
+                                                    color="secondary"
+                                                    onClick={() => window.location.href = `/inventory-history?product=${product.id}`}
+                                                >
+                                                    <InventoryIcon />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
                             </TableBody>
                         </Table>
                     </TableContainer>

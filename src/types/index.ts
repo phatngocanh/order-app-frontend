@@ -50,11 +50,17 @@ export interface UpdateProductRequest {
     original_price: number;
 }
 
+export interface InventoryInfo {
+    quantity: number;
+    version: string;
+}
+
 export interface ProductResponse {
     id: number;
     name: string;
     spec: number;
     original_price: number;
+    inventory?: InventoryInfo;
 }
 
 export interface GetAllProductsResponse {

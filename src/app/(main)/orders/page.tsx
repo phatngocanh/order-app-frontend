@@ -44,6 +44,12 @@ const DELIVERY_STATUSES = [
     { value: "UNPAID", label: "Chưa thanh toán" },
 ];
 
+const SORT_OPTIONS = [
+    { value: "", label: "Mặc định (ID giảm dần)" },
+    { value: "order_date_desc", label: "Ngày đặt (mới nhất)" },
+    { value: "order_date_asc", label: "Ngày đặt (cũ nhất)" },
+];
+
 export default function OrdersPage() {
     const [orders, setOrders] = useState<OrderResponse[]>([]);
     const [customers, setCustomers] = useState<CustomerResponse[]>([]);
@@ -57,6 +63,7 @@ export default function OrdersPage() {
     const [filtersOpen, setFiltersOpen] = useState(false);
     const [selectedCustomerId, setSelectedCustomerId] = useState<number | ''>('');
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+    const [selectedSort, setSelectedSort] = useState<string>('');
 
     useEffect(() => {
         loadCustomers();
@@ -88,6 +95,7 @@ export default function OrdersPage() {
     const handleClearFilters = () => {
         setSelectedCustomerId('');
         setSelectedStatuses([]);
+        setSelectedSort('');
         loadOrders();
     };
 
@@ -104,6 +112,26 @@ export default function OrdersPage() {
         }
         if (newStatuses.length > 0) {
             filters.delivery_statuses = newStatuses.join(',');
+        }
+        if (selectedSort !== '') {
+            filters.sort_by = selectedSort;
+        }
+        loadOrders(filters);
+    };
+
+    const handleSortChange = (sortBy: string) => {
+        setSelectedSort(sortBy);
+        
+        // Apply filters with new sort
+        const filters: OrderFilters = {};
+        if (selectedCustomerId !== '') {
+            filters.customer_id = selectedCustomerId as number;
+        }
+        if (selectedStatuses.length > 0) {
+            filters.delivery_statuses = selectedStatuses.join(',');
+        }
+        if (sortBy !== '') {
+            filters.sort_by = sortBy;
         }
         loadOrders(filters);
     };
@@ -255,6 +283,9 @@ export default function OrdersPage() {
                                     if (selectedStatuses.length > 0) {
                                         filters.delivery_statuses = selectedStatuses.join(',');
                                     }
+                                    if (selectedSort !== '') {
+                                        filters.sort_by = selectedSort;
+                                    }
                                     loadOrders(filters);
                                 }}
                             >
@@ -289,11 +320,27 @@ export default function OrdersPage() {
                             </FormGroup>
                         </FormControl>
 
+                        <FormControl sx={{ minWidth: 200 }}>
+                            <InputLabel>Sắp xếp</InputLabel>
+                            <Select
+                                value={selectedSort}
+                                label="Sắp xếp"
+                                onChange={(e) => handleSortChange(e.target.value)}
+                            >
+                                {SORT_OPTIONS.map((option) => (
+                                    <MenuItem key={option.value} value={option.value}>
+                                        {option.value === '' ? <em>{option.label}</em> : option.label}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
                         <Box sx={{ display: "flex", gap: 1 }}>
                             <Button
                                 variant="outlined"
                                 onClick={handleClearFilters}
                                 size="small"
+                                sx={{ mt: 'auto', mb: 'auto' }}
                             >
                                 Xóa bộ lọc
                             </Button>

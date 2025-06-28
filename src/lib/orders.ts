@@ -10,6 +10,7 @@ import {
 export interface OrderFilters {
     customer_id?: number;
     delivery_statuses?: string; // comma-separated statuses like "PENDING,DELIVERED"
+    sort_by?: string; // order_date_asc, order_date_desc
 }
 
 export const ordersApi = {
@@ -33,6 +34,9 @@ export const ordersApi = {
         }
         if (filters?.delivery_statuses) {
             params.append('delivery_statuses', filters.delivery_statuses);
+        }
+        if (filters?.sort_by) {
+            params.append('sort_by', filters.sort_by);
         }
         
         const queryString = params.toString();

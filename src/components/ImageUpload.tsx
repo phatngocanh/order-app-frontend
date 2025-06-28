@@ -230,7 +230,7 @@ export default function ImageUpload({
                                         sx={{
                                             p: 0,
                                             width: "100%",
-                                            height: "150px",
+                                            height: "200px",
                                             minWidth: "unset",
                                             textTransform: "none",
                                             "&:hover": {
@@ -243,11 +243,12 @@ export default function ImageUpload({
                                             src={image.image_url}
                                             alt={`Ảnh đơn hàng ${image.id}`}
                                             width={200}
-                                            height={150}
+                                            height={200}
                                             style={{
                                                 width: "100%",
                                                 height: "100%",
-                                                objectFit: "cover",
+                                                objectFit: "contain",
+                                                backgroundColor: "#f5f5f5",
                                             }}
                                         />
                                     </Button>
@@ -294,10 +295,12 @@ export default function ImageUpload({
                     "& .MuiDialog-paper": {
                         backgroundColor: "rgba(0, 0, 0, 0.9)",
                         boxShadow: "none",
+                        maxHeight: "95vh",
+                        margin: "2.5vh auto",
                     },
                 }}
             >
-                <DialogContent sx={{ p: 0, position: "relative" }}>
+                <DialogContent sx={{ p: 0, position: "relative", height: "90vh", overflow: "hidden" }}>
                     {/* Close Button */}
                     <IconButton
                         onClick={handleCloseViewer}
@@ -365,8 +368,9 @@ export default function ImageUpload({
                             display: "flex",
                             justifyContent: "center",
                             alignItems: "center",
-                            minHeight: "80vh",
+                            height: "100%",
                             p: 2,
+                            boxSizing: "border-box",
                         }}
                     >
                         {images[currentImageIndex] && (

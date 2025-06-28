@@ -191,13 +191,10 @@ export interface UploadOrderImageResponse {
     orderImage: OrderImage;
 }
 
-export interface GetOrderImagesResponse {
-    orderImages: OrderImage[];
-}
-
 export interface GenerateSignedUploadURLResponse {
     signed_url: string;
     s3_key: string;
+    image_id: number;
 }
 
 // Form types

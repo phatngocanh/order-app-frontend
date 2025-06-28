@@ -2,8 +2,6 @@ import { api } from "@/lib/axios";
 import {
     ApiResponse,
     GenerateSignedUploadURLResponse,
-    GetOrderImagesResponse,
-    UploadOrderImageResponse,
 } from "@/types";
 
 export const orderImagesApi = {
@@ -15,29 +13,38 @@ export const orderImagesApi = {
         return response.data.data;
     },
 
-    // Upload an image for an order
+    // Upload an image for an order using signed URL
     uploadImage: async (orderId: number, file: File) => {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const response = await api.post<ApiResponse<UploadOrderImageResponse>>(
-            `/orders/${orderId}/images`,
-            formData,
-            {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            }
+        // Step 1: Generate signed upload URL
+        const signedUrlResponse = await orderImagesApi.generateSignedUploadURL(
+            orderId,
+            file.name,
+            file.type
         );
-        return response.data.data;
-    },
 
-    // Get all images for an order
-    getImagesByOrderId: async (orderId: number) => {
-        const response = await api.get<ApiResponse<GetOrderImagesResponse>>(
-            `/orders/${orderId}/images`
-        );
-        return response.data.data;
+        // Step 2: Upload file directly to S3 using the signed URL
+        const uploadResponse = await fetch(signedUrlResponse.signed_url, {
+            method: 'PUT',
+            body: file,
+            headers: {
+                'Content-Type': file.type,
+            },
+        });
+
+        if (!uploadResponse.ok) {
+            throw new Error(`Failed to upload file to S3: ${uploadResponse.statusText}`);
+        }
+
+        // Step 3: Return the response with the uploaded image info
+        // The backend has already created the database record in the generateSignedUploadURL step
+        return {
+            orderImage: {
+                id: 0, // This will be updated when we reload the order
+                order_id: orderId,
+                image_url: signedUrlResponse.signed_url, // This will be a signed download URL
+                s3_key: signedUrlResponse.s3_key,
+            },
+        };
     },
 
     // Delete an image

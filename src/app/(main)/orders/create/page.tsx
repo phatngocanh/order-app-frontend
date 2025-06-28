@@ -544,8 +544,16 @@ export default function CreateOrderPage() {
                                             label="Chi phí phụ thêm (VND)"
                                             value={formData.additional_cost !== undefined && formData.additional_cost !== null && !isNaN(formData.additional_cost) ? formData.additional_cost.toLocaleString("vi-VN") : ""}
                                             onChange={(e) => {
-                                                const raw = e.target.value.replace(/\D/g, "");
-                                                handleFormChange("additional_cost", raw ? parseInt(raw) : 0);
+                                                const raw = e.target.value.replace(/[^\d-]/g, "");
+                                                // Handle negative numbers properly
+                                                if (raw === "-") {
+                                                    handleFormChange("additional_cost", 0);
+                                                } else if (raw.startsWith("-")) {
+                                                    const numValue = parseInt(raw);
+                                                    handleFormChange("additional_cost", isNaN(numValue) ? 0 : numValue);
+                                                } else {
+                                                    handleFormChange("additional_cost", raw ? parseInt(raw) : 0);
+                                                }
                                             }}
                                             placeholder="0"
                                         />

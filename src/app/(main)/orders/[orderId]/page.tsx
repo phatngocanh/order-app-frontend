@@ -733,8 +733,16 @@ export default function OrderDetailPage() {
                             type="text"
                             value={editAdditionalCost ? parseInt(editAdditionalCost).toLocaleString("vi-VN") : "0"}
                             onChange={(e) => {
-                                const raw = e.target.value.replace(/\D/g, "");
-                                setEditAdditionalCost(raw ? raw : "0");
+                                const raw = e.target.value.replace(/[^\d-]/g, "");
+                                // Handle negative numbers properly
+                                if (raw === "-") {
+                                    setEditAdditionalCost("0");
+                                } else if (raw.startsWith("-")) {
+                                    const numValue = parseInt(raw);
+                                    setEditAdditionalCost(isNaN(numValue) ? "0" : raw);
+                                } else {
+                                    setEditAdditionalCost(raw ? raw : "0");
+                                }
                             }}
                             placeholder="0"
                         />

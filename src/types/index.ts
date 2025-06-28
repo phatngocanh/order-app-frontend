@@ -80,6 +80,8 @@ export interface Order {
     debt_status: string;
     status_transitioned_at?: string;
     shipping_fee?: number;
+    additional_cost?: number;
+    additional_cost_note?: string;
     order_items: OrderItem[];
 }
 
@@ -102,6 +104,8 @@ export interface CreateOrderRequest {
     debt_status?: string;
     status_transitioned_at?: string;
     shipping_fee?: number;
+    additional_cost?: number;
+    additional_cost_note?: string;
     order_items: OrderItemRequest[];
 }
 
@@ -125,6 +129,8 @@ export interface UpdateOrderRequest {
     debt_status?: string;
     status_transitioned_at?: string;
     shipping_fee?: number;
+    additional_cost?: number;
+    additional_cost_note?: string;
 }
 
 export interface OrderResponse {
@@ -134,6 +140,8 @@ export interface OrderResponse {
     debt_status: string;
     status_transitioned_at?: string;
     shipping_fee?: number;
+    additional_cost?: number;
+    additional_cost_note?: string;
     order_items: OrderItemResponse[];
     customer: CustomerResponse;
     total_amount?: number;

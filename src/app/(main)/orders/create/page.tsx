@@ -37,6 +37,8 @@ interface OrderFormData {
     delivery_status: string;
     debt_status: string;
     shipping_fee: number;
+    additional_cost: number;
+    additional_cost_note: string;
     order_items: OrderItemFormData[];
 }
 
@@ -69,6 +71,8 @@ export default function CreateOrderPage() {
         delivery_status: "PENDING",
         debt_status: "",
         shipping_fee: 0,
+        additional_cost: 0,
+        additional_cost_note: "",
         order_items: [],
     });
 
@@ -393,6 +397,8 @@ export default function CreateOrderPage() {
                 delivery_status: formData.delivery_status,
                 debt_status: formData.debt_status,
                 shipping_fee: formData.shipping_fee || 0,
+                additional_cost: formData.additional_cost || 0,
+                additional_cost_note: formData.additional_cost_note || "",
                 order_items: formData.order_items.map(item => ({
                     product_id: item.product_id,
                     number_of_boxes: item.number_of_boxes,
@@ -529,6 +535,27 @@ export default function CreateOrderPage() {
                                                 handleFormChange("shipping_fee", raw ? parseInt(raw) : 0);
                                             }}
                                             placeholder="0"
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <TextField
+                                            fullWidth
+                                            type="text"
+                                            label="Chi phí phụ thêm (VND)"
+                                            value={formData.additional_cost !== undefined && formData.additional_cost !== null && !isNaN(formData.additional_cost) ? formData.additional_cost.toLocaleString("vi-VN") : ""}
+                                            onChange={(e) => {
+                                                const raw = e.target.value.replace(/\D/g, "");
+                                                handleFormChange("additional_cost", raw ? parseInt(raw) : 0);
+                                            }}
+                                            placeholder="0"
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <TextField
+                                            fullWidth
+                                            label="Ghi chú chi phí phụ thêm"
+                                            value={formData.additional_cost_note}
+                                            onChange={(e) => handleFormChange("additional_cost_note", e.target.value)}
                                         />
                                     </Grid>
                                 </Grid>

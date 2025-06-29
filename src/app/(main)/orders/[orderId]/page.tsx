@@ -554,6 +554,7 @@ export default function OrderDetailPage() {
                                             <TableCell>Thành tiền</TableCell>
                                             <TableCell>Lãi/Lỗ</TableCell>
                                             <TableCell>Nguồn xuất</TableCell>
+                                            <TableCell><b>Tổng cộng</b></TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -598,10 +599,11 @@ export default function OrderDetailPage() {
                                                             size="small"
                                                         />
                                                     </TableCell>
+                                                    <TableCell sx={{ borderBottom: 'none' }} />
                                                 </TableRow>
                                                 {item.original_price !== undefined && item.profit_loss !== undefined && item.profit_loss_percentage !== undefined && (
                                                     <TableRow>
-                                                        <TableCell colSpan={10} sx={{ p: 0.5, border: 0, borderBottom: '1px solid #e0e0e0' }}>
+                                                        <TableCell colSpan={11} sx={{ p: 0.5, border: 0, borderBottom: '1px solid #e0e0e0' }}>
                                                             <span
                                                                 style={{
                                                                     fontSize: 13,
@@ -621,6 +623,28 @@ export default function OrderDetailPage() {
                                                 )}
                                             </React.Fragment>
                                         ))}
+                                        {/* Summary Row */}
+                                        {order && (
+                                            <TableRow>
+                                                <TableCell colSpan={6} />
+                                                <TableCell sx={{ fontWeight: 'bold', color: '#2563eb' }}>Tổng cộng</TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold', color: '#2563eb' }}>
+                                                    {(() => {
+                                                        const totalAmount = (order.total_amount ?? 0) - (order.additional_cost ?? 0);
+                                                        return `${totalAmount.toLocaleString('vi-VN')} VND`;
+                                                    })()}
+                                                </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold', color: (() => {
+                                                    const totalProfitLoss = ((order.total_profit_loss ?? 0) - (order.additional_cost ?? 0));
+                                                    return totalProfitLoss >= 0 ? '#059669' : '#dc2626';
+                                                })() }}>
+                                                    {(() => {
+                                                        const totalProfitLoss = ((order.total_profit_loss ?? 0) - (order.additional_cost ?? 0));
+                                                        return totalProfitLoss >= 0 ? `+${totalProfitLoss.toLocaleString('vi-VN')}` : `${totalProfitLoss.toLocaleString('vi-VN')}`;
+                                                    })()} VND
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
                                     </TableBody>
                                 </Table>
                             </TableContainer>

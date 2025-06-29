@@ -235,15 +235,25 @@ export default function CreateOrderPage() {
         }));
     };
 
-    const updateOrderItem = (index: number, field: keyof OrderItemFormData, value: any) => {
+    const updateOrderItem = (index: number, field: keyof OrderItemFormData, value: any) =>
         setFormData(prev => {
             const updatedItems = [...prev.order_items];
-            const item = { ...updatedItems[index], [field]: value };
+            let item = { ...updatedItems[index], [field]: value };
 
-            // If product_id changes, set version to the inventory version at that time
+            // If product_id changes, clear all other fields
             if (field === 'product_id') {
                 const inventory = getInventoryForProduct(value);
-                item.version = inventory ? inventory.version : '';
+                item = {
+                    product_id: value,
+                    number_of_boxes: undefined,
+                    spec: undefined,
+                    quantity: 0,
+                    selling_price: 0,
+                    discount: 0,
+                    final_amount: undefined,
+                    version: inventory ? inventory.version : '',
+                    export_from: '',
+                };
             }
 
             // Handle spec, boxes, and quantity logic
@@ -287,7 +297,6 @@ export default function CreateOrderPage() {
                 order_items: updatedItems,
             };
         });
-    };
 
     const getInventoryWarning = (productId: number, quantity: number, exportFrom: string) => {
         if (productId === 0 || quantity === 0) return null;

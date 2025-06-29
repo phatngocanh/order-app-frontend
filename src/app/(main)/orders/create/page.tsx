@@ -12,7 +12,11 @@ import {
     InventoryResponse,
     ProductResponse,
 } from "@/types";
-import { Add as AddIcon, Delete as DeleteIcon, Refresh as RefreshIcon } from "@mui/icons-material";
+import {
+    Add as AddIcon,
+    Delete as DeleteIcon,
+    Refresh as RefreshIcon
+} from "@mui/icons-material";
 import {
     Alert,
     Box,
@@ -22,6 +26,7 @@ import {
     FormControl,
     Grid,
     IconButton,
+    InputAdornment,
     InputLabel,
     MenuItem,
     Paper,
@@ -526,20 +531,32 @@ export default function CreateOrderPage() {
                                             fullWidth
                                             type="text"
                                             label="Chi phí phụ thêm (VND)"
-                                            value={formData.additional_cost !== undefined && formData.additional_cost !== null && !isNaN(formData.additional_cost) ? formData.additional_cost.toLocaleString("vi-VN") : ""}
+                                            value={
+                                                typeof formData.additional_cost === 'string' && (formData.additional_cost === '' || formData.additional_cost === '-')
+                                                    ? formData.additional_cost
+                                                    : Number(formData.additional_cost).toLocaleString('vi-VN')
+                                            }
                                             onChange={(e) => {
-                                                const raw = e.target.value.replace(/[^\d-]/g, "");
-                                                // Handle negative numbers properly
-                                                if (raw === "-") {
-                                                    handleFormChange("additional_cost", 0);
-                                                } else if (raw.startsWith("-")) {
-                                                    const numValue = parseInt(raw);
-                                                    handleFormChange("additional_cost", isNaN(numValue) ? 0 : numValue);
+                                                let raw = e.target.value.replace(/[^\d-]/g, "");
+                                                // Only allow a single leading minus
+                                                if (raw.startsWith("-")) {
+                                                    raw = "-" + raw.slice(1).replace(/-/g, "");
                                                 } else {
-                                                    handleFormChange("additional_cost", raw ? parseInt(raw) : 0);
+                                                    raw = raw.replace(/-/g, "");
+                                                }
+                                                if (raw === "" || raw === "-") {
+                                                    handleFormChange("additional_cost", raw);
+                                                } else {
+                                                    handleFormChange("additional_cost", Number(raw));
                                                 }
                                             }}
                                             placeholder="0"
+                                            InputProps={{
+                                                inputProps: {
+                                                    step: 1,
+                                                },
+                                                endAdornment: <InputAdornment position="end">VND</InputAdornment>,
+                                            }}
                                         />
                                     </Grid>
                                     <Grid item xs={12} md={6}>
@@ -829,11 +846,24 @@ export default function CreateOrderPage() {
                                 {formData.order_items.length > 0 && (
                                     <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
                                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end' }}>
-                                            <Typography variant="h6">
-                                                Tổng tiền đơn hàng: {calculateOrderTotal().toLocaleString("vi-VN")} VND
-                                            </Typography>
                                             {(() => {
-                                                const totalProfitLoss = calculateTotalProfitLoss();
+                                                const total = calculateOrderTotal();
+                                                const additionalCost = formData.additional_cost || 0;
+                                                const totalAfterCost = total + additionalCost;
+                                                const additionalCostSign = additionalCost > 0 ? '+' : (additionalCost < 0 ? '-' : '');
+                                                return (
+                                                    <Typography variant="h6">
+                                                        Tổng tiền đơn hàng: {total.toLocaleString("vi-VN")} VND
+                                                        {additionalCost !== 0 && (
+                                                            <>
+                                                                {' '}{additionalCostSign}{Math.abs(additionalCost).toLocaleString("vi-VN")} Phí phụ thêm = <b>{totalAfterCost.toLocaleString("vi-VN")} VND</b>
+                                                            </>
+                                                        )}
+                                                    </Typography>
+                                                );
+                                            })()}
+                                            {(() => {
+                                                const totalProfitLoss = calculateTotalProfitLoss() + (formData.additional_cost || 0);
                                                 const totalProfitLossPercentage = calculateTotalProfitLossPercentage();
                                                 if (totalProfitLoss !== 0) {
                                                     return (

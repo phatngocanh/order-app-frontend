@@ -350,8 +350,10 @@ export default function CreateOrderPage() {
             return total;
         }, 0);
 
+        const additionalCost = typeof formData.additional_cost === 'number' ? formData.additional_cost : 0;
+
         if (totalOriginalCost > 0) {
-            return (calculateTotalProfitLoss() / totalOriginalCost) * 100;
+            return ((calculateTotalProfitLoss() + additionalCost) / totalOriginalCost) * 100;
         }
         return 0;
     };

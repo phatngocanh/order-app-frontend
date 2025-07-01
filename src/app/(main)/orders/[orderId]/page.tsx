@@ -47,10 +47,11 @@ export default function OrderDetailPage() {
     const [success, setSuccess] = useState<string | null>(null);
     const [updating, setUpdating] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const [editType, setEditType] = useState<'delivery' | 'debt' | 'additional_cost' | 'additional_cost_note'>('delivery');
+    const [editType, setEditType] = useState<'delivery' | 'debt' | 'additional_cost' | 'additional_cost_note' | 'tax_percent'>('delivery');
     const [editStatus, setEditStatus] = useState('');
     const [editAdditionalCost, setEditAdditionalCost] = useState('');
     const [editAdditionalCostNote, setEditAdditionalCostNote] = useState('');
+    const [editTaxPercent, setEditTaxPercent] = useState('');
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
     
@@ -169,7 +170,7 @@ export default function OrderDetailPage() {
         }
     };
 
-    const handleEditStatus = (type: 'delivery' | 'debt' | 'additional_cost' | 'additional_cost_note') => {
+    const handleEditStatus = (type: 'delivery' | 'debt' | 'additional_cost' | 'additional_cost_note' | 'tax_percent') => {
         setEditType(type);
         if (type === 'delivery') {
             setEditStatus(order?.delivery_status || '');
@@ -179,6 +180,8 @@ export default function OrderDetailPage() {
             setEditAdditionalCost((order?.additional_cost || 0).toString());
         } else if (type === 'additional_cost_note') {
             setEditAdditionalCostNote(order?.additional_cost_note || '');
+        } else if (type === 'tax_percent') {
+            setEditTaxPercent((order?.tax_percent || 0).toString());
         }
         setEditDialogOpen(true);
     };
@@ -204,6 +207,8 @@ export default function OrderDetailPage() {
                 updateData.additional_cost = parseInt(editAdditionalCost) || 0;
             } else if (editType === 'additional_cost_note') {
                 updateData.additional_cost_note = editAdditionalCostNote;
+            } else if (editType === 'tax_percent') {
+                updateData.tax_percent = parseInt(editTaxPercent) || 0;
             }
 
             await ordersApi.update(order.id, updateData);
@@ -215,6 +220,7 @@ export default function OrderDetailPage() {
             setEditStatus('');
             setEditAdditionalCost('');
             setEditAdditionalCostNote('');
+            setEditTaxPercent('');
             setSuccess("Thông tin đơn hàng đã được cập nhật thành công");
             
             // Clear success message after 3 seconds
@@ -512,6 +518,24 @@ export default function OrderDetailPage() {
                                         {(order.total_amount ?? 0).toLocaleString("vi-VN")} VND
                                     </Typography>
                                 </Grid>
+                                                                  <Grid item xs={6}>
+                                      <Typography variant="body2" color="textSecondary">
+                                          Thuế:
+                                      </Typography>
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                          <Typography variant="h6" sx={{ flex: 1 }}>
+                                             {order.tax_percent || 0}%
+                                          </Typography>
+                                          <Button
+                                              size="small"
+                                              startIcon={<EditIcon />}
+                                              onClick={() => handleEditStatus('tax_percent')}
+                                              sx={{ minWidth: 'auto', p: 0.5 }}
+                                          >
+                                              Sửa
+                                          </Button>
+                                      </Box>
+                                  </Grid>
                                 {order.total_profit_loss !== undefined && order.total_profit_loss_percentage !== undefined && (
                                     <Grid item xs={12}>
                                         <Typography variant="body2" color="textSecondary">
@@ -630,8 +654,17 @@ export default function OrderDetailPage() {
                                                 <TableCell sx={{ fontWeight: 'bold', color: '#2563eb' }}>Tổng cộng</TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold', color: '#2563eb' }}>
                                                     {(() => {
-                                                        const totalAmount = (order.total_amount ?? 0) - (order.additional_cost ?? 0);
-                                                        return `${totalAmount.toLocaleString('vi-VN')} VND`;
+                                                        const totalAmountWithTax = order.total_amount ?? 0;
+                                                        const additionalCost = order.additional_cost ?? 0;
+                                                        const taxPercent = order.tax_percent ?? 0;
+                                                        
+                                                        // Remove tax first, then subtract additional cost
+                                                        const totalAmountBeforeTax = taxPercent > 0 
+                                                            ? Math.round(totalAmountWithTax / (1 + taxPercent / 100))
+                                                            : totalAmountWithTax;
+                                                        const itemsTotal = totalAmountBeforeTax - additionalCost;
+                                                        
+                                                        return `${itemsTotal.toLocaleString('vi-VN')} VND`;
                                                     })()}
                                                 </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold', color: (() => {
@@ -673,7 +706,7 @@ export default function OrderDetailPage() {
             {/* Edit Status Dialog */}
             <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>
-                    Cập nhật {editType === 'delivery' ? 'trạng thái giao hàng' : editType === 'debt' ? 'trạng thái công nợ' : editType === 'additional_cost' ? 'chi phí phụ thêm' : 'ghi chú chi phí phụ thêm'}
+                    Cập nhật {editType === 'delivery' ? 'trạng thái giao hàng' : editType === 'debt' ? 'trạng thái công nợ' : editType === 'additional_cost' ? 'chi phí phụ thêm' : editType === 'tax_percent' ? 'thuế' : 'ghi chú chi phí phụ thêm'}
                 </DialogTitle>
                 <DialogContent>
                     {editType === 'delivery' ? (
@@ -719,6 +752,23 @@ export default function OrderDetailPage() {
                             }}
                             placeholder="0"
                         />
+                                         ) : editType === 'tax_percent' ? (
+                         <TextField
+                             fullWidth
+                             sx={{ mt: 2 }}
+                             label="Thuế (%)"
+                             type="number"
+                             value={editTaxPercent}
+                             onChange={(e) => setEditTaxPercent(e.target.value)}
+                             placeholder="0"
+                             InputProps={{
+                                 inputProps: {
+                                     min: 0,
+                                     max: 100,
+                                     step: 1,
+                                 },
+                             }}
+                         />
                     ) : (
                         <TextField
                             fullWidth
@@ -739,7 +789,8 @@ export default function OrderDetailPage() {
                         disabled={
                             updating || 
                             (editType === 'delivery' && !editStatus) ||
-                            (editType === 'additional_cost' && !editAdditionalCost)
+                            (editType === 'additional_cost' && !editAdditionalCost) ||
+                            (editType === 'tax_percent' && !editTaxPercent)
                         }
                     >
                         {updating ? "Đang cập nhật..." : "Cập nhật"}

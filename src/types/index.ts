@@ -104,6 +104,7 @@ export interface CreateOrderRequest {
     status_transitioned_at?: string;
     additional_cost?: number;
     additional_cost_note?: string;
+    tax_percent?: number;
     order_items: OrderItemRequest[];
 }
 
@@ -128,6 +129,7 @@ export interface UpdateOrderRequest {
     status_transitioned_at?: string;
     additional_cost?: number;
     additional_cost_note?: string;
+    tax_percent?: number;
 }
 
 export interface OrderResponse {
@@ -143,6 +145,7 @@ export interface OrderResponse {
     images?: OrderImage[];
     total_amount?: number;
     product_count?: number;
+    tax_percent?: number;
     // Profit/Loss fields for total order
     total_profit_loss?: number;
     total_profit_loss_percentage?: number;

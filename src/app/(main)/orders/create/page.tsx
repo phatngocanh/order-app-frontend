@@ -43,6 +43,7 @@ interface OrderFormData {
     debt_status: string;
     additional_cost: number;
     additional_cost_note: string;
+    tax_percent: number;
     order_items: OrderItemFormData[];
 }
 
@@ -76,6 +77,7 @@ export default function CreateOrderPage() {
         debt_status: "",
         additional_cost: 0,
         additional_cost_note: "",
+        tax_percent: 0,
         order_items: [],
     });
 
@@ -329,12 +331,6 @@ export default function CreateOrderPage() {
         );
     };
 
-    const calculateOrderTotal = () => {
-        return formData.order_items.reduce((total, item) => {
-            return total + (item.final_amount || 0);
-        }, 0);
-    };
-
     const calculateTotalProfitLoss = () => {
         return formData.order_items.reduce((total, item) => {
             const product = getProductById(item.product_id);
@@ -412,6 +408,7 @@ export default function CreateOrderPage() {
                 debt_status: formData.debt_status,
                 additional_cost: formData.additional_cost || 0,
                 additional_cost_note: formData.additional_cost_note || "",
+                tax_percent: formData.tax_percent,
                 order_items: formData.order_items.map(item => ({
                     product_id: item.product_id,
                     number_of_boxes: item.number_of_boxes,
@@ -576,6 +573,24 @@ export default function CreateOrderPage() {
                                             label="Ghi chú chi phí phụ thêm"
                                             value={formData.additional_cost_note}
                                             onChange={(e) => handleFormChange("additional_cost_note", e.target.value)}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <TextField
+                                            fullWidth
+                                            type="number"
+                                            label="Thuế (%)"
+                                            value={formData.tax_percent}
+                                            onChange={(e) => handleFormChange("tax_percent", Number(e.target.value))}
+                                            placeholder="0"
+                                            InputProps={{
+                                                inputProps: {
+                                                    min: 0,
+                                                    max: 100,
+                                                    step: 1,
+                                                },
+                                                endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                                            }}
                                         />
                                     </Grid>
                                 </Grid>
@@ -858,19 +873,36 @@ export default function CreateOrderPage() {
                                     <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
                                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end' }}>
                                             {(() => {
-                                                const total = calculateOrderTotal();
+                                                const itemsTotal = formData.order_items.reduce((total, item) => {
+                                                    return total + (item.final_amount || 0);
+                                                }, 0);
                                                 const additionalCost = formData.additional_cost || 0;
-                                                const totalAfterCost = total + additionalCost;
-                                                const additionalCostSign = additionalCost > 0 ? '+' : (additionalCost < 0 ? '-' : '');
+                                                const subtotal = itemsTotal + additionalCost;
+                                                const taxAmount = Math.round((subtotal * formData.tax_percent) / 100);
+                                                const finalTotal = subtotal + taxAmount;
+                                                
                                                 return (
-                                                    <Typography variant="h6">
-                                                        Tổng tiền đơn hàng: {total.toLocaleString("vi-VN")} VND
+                                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                                        <Typography variant="body1">
+                                                            Tổng sản phẩm: {itemsTotal.toLocaleString("vi-VN")} VND
+                                                        </Typography>
                                                         {additionalCost !== 0 && (
-                                                            <>
-                                                                {' '}{additionalCostSign}{Math.abs(additionalCost).toLocaleString("vi-VN")} Phí phụ thêm = <b>{totalAfterCost.toLocaleString("vi-VN")} VND</b>
-                                                            </>
+                                                            <Typography variant="body1">
+                                                                Chi phí phụ thêm: {additionalCost >= 0 ? '+' : ''}{additionalCost.toLocaleString("vi-VN")} VND
+                                                            </Typography>
                                                         )}
-                                                    </Typography>
+                                                        <Typography variant="body1">
+                                                            Tạm tính: {subtotal.toLocaleString("vi-VN")} VND
+                                                        </Typography>
+                                                        {formData.tax_percent > 0 && (
+                                                            <Typography variant="body1">
+                                                                Thuế ({formData.tax_percent}%): +{taxAmount.toLocaleString("vi-VN")} VND
+                                                            </Typography>
+                                                        )}
+                                                        <Typography variant="h6" sx={{ fontWeight: 'bold', borderTop: '1px solid #ccc', pt: 1 }}>
+                                                            Tổng cộng: {finalTotal.toLocaleString("vi-VN")} VND
+                                                        </Typography>
+                                                    </Box>
                                                 );
                                             })()}
                                             {(() => {

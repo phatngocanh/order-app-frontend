@@ -149,6 +149,7 @@ export interface OrderResponse {
     // Profit/Loss fields for total order
     total_profit_loss?: number;
     total_profit_loss_percentage?: number;
+    total_sales_revenue: number
 }
 
 export interface OrderItemResponse {

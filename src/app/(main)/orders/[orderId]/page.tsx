@@ -653,19 +653,7 @@ export default function OrderDetailPage() {
                                                 <TableCell colSpan={6} />
                                                 <TableCell sx={{ fontWeight: 'bold', color: '#2563eb' }}>Tổng cộng</TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold', color: '#2563eb' }}>
-                                                    {(() => {
-                                                        const totalAmountWithTax = order.total_amount ?? 0;
-                                                        const additionalCost = order.additional_cost ?? 0;
-                                                        const taxPercent = order.tax_percent ?? 0;
-                                                        
-                                                        // Remove tax first, then subtract additional cost
-                                                        const totalAmountBeforeTax = taxPercent > 0 
-                                                            ? Math.round(totalAmountWithTax / (1 + taxPercent / 100))
-                                                            : totalAmountWithTax;
-                                                        const itemsTotal = totalAmountBeforeTax - additionalCost;
-                                                        
-                                                        return `${itemsTotal.toLocaleString('vi-VN')} VND`;
-                                                    })()}
+                                                   {`${order.total_sales_revenue.toLocaleString('vi-VN')} VND`}
                                                 </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold', color: (() => {
                                                     const totalProfitLoss = ((order.total_profit_loss ?? 0) - (order.additional_cost ?? 0));

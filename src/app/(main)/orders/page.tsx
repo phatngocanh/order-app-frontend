@@ -34,6 +34,7 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    TextField,
     Typography,
 } from "@mui/material";
 
@@ -64,6 +65,12 @@ export default function OrdersPage() {
     const [selectedCustomerId, setSelectedCustomerId] = useState<number | ''>('');
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const [selectedSort, setSelectedSort] = useState<string>('');
+    const [fromDate, setFromDate] = useState<string>('');
+    const [toDate, setToDate] = useState<string>('');
+    
+    // Summary states
+    const [totalAmount, setTotalAmount] = useState<number>(0);
+    const [totalProfitLoss, setTotalProfitLoss] = useState<number>(0);
 
     useEffect(() => {
         loadCustomers();
@@ -84,6 +91,8 @@ export default function OrdersPage() {
             setLoading(true);
             const response = await ordersApi.getAll(filters);
             setOrders(response.orders);
+            setTotalAmount(response.all_order_total_amount || 0);
+            setTotalProfitLoss(response.all_order_total_profit_loss || 0);
         } catch (err) {
             setError("Không thể tải danh sách đơn hàng");
             console.error("Error loading orders:", err);
@@ -96,33 +105,12 @@ export default function OrdersPage() {
         setSelectedCustomerId('');
         setSelectedStatuses([]);
         setSelectedSort('');
+        setFromDate('');
+        setToDate('');
         loadOrders();
     };
 
-    const handleStatusChange = (status: string) => {
-        const newStatuses = selectedStatuses.includes(status) 
-            ? selectedStatuses.filter(s => s !== status)
-            : [...selectedStatuses, status];
-        setSelectedStatuses(newStatuses);
-        
-        // Apply filters immediately
-        const filters: OrderFilters = {};
-        if (selectedCustomerId !== '') {
-            filters.customer_id = selectedCustomerId as number;
-        }
-        if (newStatuses.length > 0) {
-            filters.delivery_statuses = newStatuses.join(',');
-        }
-        if (selectedSort !== '') {
-            filters.sort_by = selectedSort;
-        }
-        loadOrders(filters);
-    };
-
-    const handleSortChange = (sortBy: string) => {
-        setSelectedSort(sortBy);
-        
-        // Apply filters with new sort
+    const handleApplyFilters = () => {
         const filters: OrderFilters = {};
         if (selectedCustomerId !== '') {
             filters.customer_id = selectedCustomerId as number;
@@ -130,10 +118,35 @@ export default function OrdersPage() {
         if (selectedStatuses.length > 0) {
             filters.delivery_statuses = selectedStatuses.join(',');
         }
-        if (sortBy !== '') {
-            filters.sort_by = sortBy;
+        if (selectedSort !== '') {
+            filters.sort_by = selectedSort;
+        }
+        if (fromDate) {
+            filters.from_date = fromDate;
+        }
+        if (toDate) {
+            filters.to_date = toDate;
         }
         loadOrders(filters);
+    };
+
+    const handleStatusChange = (status: string) => {
+        const newStatuses = selectedStatuses.includes(status) 
+            ? selectedStatuses.filter(s => s !== status)
+            : [...selectedStatuses, status];
+        setSelectedStatuses(newStatuses);
+    };
+
+    const handleSortChange = (sortBy: string) => {
+        setSelectedSort(sortBy);
+    };
+
+    const handleDateFilterChange = (field: 'from' | 'to', value: string) => {
+        if (field === 'from') {
+            setFromDate(value);
+        } else {
+            setToDate(value);
+        }
     };
 
     const handleDeleteClick = (order: OrderResponse) => {
@@ -274,19 +287,6 @@ export default function OrdersPage() {
                                     const value = e.target.value;
                                     const newCustomerId = value === '' ? '' : Number(value);
                                     setSelectedCustomerId(newCustomerId);
-                                    
-                                    // Apply filters immediately
-                                    const filters: OrderFilters = {};
-                                    if (newCustomerId !== '') {
-                                        filters.customer_id = newCustomerId as number;
-                                    }
-                                    if (selectedStatuses.length > 0) {
-                                        filters.delivery_statuses = selectedStatuses.join(',');
-                                    }
-                                    if (selectedSort !== '') {
-                                        filters.sort_by = selectedSort;
-                                    }
-                                    loadOrders(filters);
                                 }}
                             >
                                 <MenuItem value="">
@@ -335,6 +335,24 @@ export default function OrdersPage() {
                             </Select>
                         </FormControl>
 
+                        <TextField
+                            label="Từ ngày"
+                            type="date"
+                            value={fromDate}
+                            onChange={(e) => handleDateFilterChange('from', e.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                            sx={{ minWidth: 200 }}
+                        />
+
+                        <TextField
+                            label="Đến ngày"
+                            type="date"
+                            value={toDate}
+                            onChange={(e) => handleDateFilterChange('to', e.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                            sx={{ minWidth: 200 }}
+                        />
+
                         <Box sx={{ display: "flex", gap: 1 }}>
                             <Button
                                 variant="outlined"
@@ -344,9 +362,46 @@ export default function OrdersPage() {
                             >
                                 Xóa bộ lọc
                             </Button>
+                            <Button
+                                variant="contained"
+                                onClick={handleApplyFilters}
+                                size="small"
+                                sx={{ mt: 'auto', mb: 'auto' }}
+                            >
+                                Áp dụng
+                            </Button>
                         </Box>
                     </Box>
                 </Collapse>
+            </Paper>
+
+            {/* Summary Section */}
+            <Paper sx={{ p: 2, mb: 3 }}>
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                    Tổng quan
+                </Typography>
+                <Box sx={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                    <Box>
+                        <Typography variant="subtitle2" color="text.secondary">
+                            Tổng doanh thu
+                        </Typography>
+                        <Typography variant="h6" color="primary">
+                            {totalAmount.toLocaleString("vi-VN")} VNĐ
+                        </Typography>
+                    </Box>
+                    <Box>
+                        <Typography variant="subtitle2" color="text.secondary">
+                            Tổng lãi/lỗ
+                        </Typography>
+                        <Typography 
+                            variant="h6" 
+                            color={totalProfitLoss >= 0 ? "success.main" : "error.main"}
+                        >
+                            {totalProfitLoss >= 0 ? "+" : ""}
+                            {totalProfitLoss.toLocaleString("vi-VN")} VNĐ
+                        </Typography>
+                    </Box>
+                </Box>
             </Paper>
 
             <TableContainer component={Paper}>

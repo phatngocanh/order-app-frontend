@@ -11,6 +11,8 @@ export interface OrderFilters {
     customer_id?: number;
     delivery_statuses?: string; // comma-separated statuses like "PENDING,DELIVERED"
     sort_by?: string; // order_date_asc, order_date_desc
+    from_date?: string; // format: YYYY-MM-DD
+    to_date?: string; // format: YYYY-MM-DD
 }
 
 export const ordersApi = {
@@ -37,6 +39,12 @@ export const ordersApi = {
         }
         if (filters?.sort_by) {
             params.append('sort_by', filters.sort_by);
+        }
+        if (filters?.from_date) {
+            params.append('from_date', filters.from_date);
+        }
+        if (filters?.to_date) {
+            params.append('to_date', filters.to_date);
         }
         
         const queryString = params.toString();

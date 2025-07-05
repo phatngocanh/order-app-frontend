@@ -172,6 +172,8 @@ export interface OrderItemResponse {
 
 export interface GetAllOrdersResponse {
     orders: OrderResponse[];
+    all_order_total_amount?: number;
+    all_order_total_profit_loss?: number;
 }
 
 export interface GetOneOrderResponse {
